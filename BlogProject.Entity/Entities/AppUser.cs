@@ -13,5 +13,6 @@ namespace BlogProject.Entity.Entities
         public Image Image { get; set; }
 
         public ICollection<Article> Articles { get; set; }
+        public ICollection<Comment> Comments { get; set; }
     }
 }

@@ -34,6 +34,7 @@ namespace BlogProject.Entity.Entities
         public AppUser User { get; set; }
 
         public ICollection<ArticleVisitor> ArticleVisitors { get; set; }
+        public ICollection<Comment> Comments { get; set; }
 
     }
 }
