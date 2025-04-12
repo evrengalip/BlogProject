@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Areas\Admin\Models\**" />
+    <Compile Remove="wwwroot\sneat-1.0.0\**" />
+    <Content Remove="Areas\Admin\Models\**" />
+    <Content Remove="wwwroot\sneat-1.0.0\**" />
+    <EmbeddedResource Remove="Areas\Admin\Models\**" />
+    <EmbeddedResource Remove="wwwroot\sneat-1.0.0\**" />
+    <None Remove="Areas\Admin\Models\**" />
+    <None Remove="wwwroot\sneat-1.0.0\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="8.0.15" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.15">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="NToastNotify" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BlogProject.Data\BlogProject.Data.csproj" />
+    <ProjectReference Include="..\BlogProject.Service\BlogProject.Service.csproj" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<Folder Include="wwwroot\images\article-images\" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="wwwroot\js\dashboardIndex.js" />
+	</ItemGroup>
+
+
+</Project>
