@@ -24,6 +24,8 @@ namespace BlogProject.Service.Extensions
             services.AddScoped<IImageHelper, ImageHelper>();
             services.AddScoped<IDashbordService, DashboardService>();
 
+            services.AddScoped<ICommentService, CommentService>();
+
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             services.AddAutoMapper(assembly);
