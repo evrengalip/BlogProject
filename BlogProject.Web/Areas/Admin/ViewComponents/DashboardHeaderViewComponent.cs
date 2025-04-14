@@ -1,31 +1,33 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using BlogProject.Entity.DTOs.Users;
-using BlogProject.Entity.Entities;
-using static BlogProject.Web.ResultMessages.Messages;
+using BlogProject.Web.Services;
 
 namespace BlogProject.Web.Areas.Admin.ViewComponents
 {
     public class DashboardHeaderViewComponent : ViewComponent
     {
-        private readonly UserManager<AppUser> userManager;
-        private readonly IMapper mapper;
+        private readonly AuthApiService _authService;
 
-        public DashboardHeaderViewComponent(UserManager<AppUser> userManager, IMapper mapper)
+        public DashboardHeaderViewComponent(AuthApiService authService)
         {
-            this.userManager = userManager;
-            this.mapper = mapper;
+            _authService = authService;
         }
-        public async Task<IViewComponentResult> InvokeAsync()
+
+        public IViewComponentResult Invoke()
         {
-            var loggedInUser = await userManager.GetUserAsync(HttpContext.User);
-            var map = mapper.Map<UserDto>(loggedInUser);
+            if (_authService.IsAuthenticated())
+            {
+                var userDto = new UserDto
+                {
+                    FirstName = HttpContext.Session.GetString("FirstName"),
+                    LastName = HttpContext.Session.GetString("LastName"),
+                    Role = HttpContext.Session.GetString("Roles")
+                };
 
-            var role = string.Join("", await userManager.GetRolesAsync(loggedInUser));
-            map.Role = role;
+                return View(userDto);
+            }
 
-            return View(map);
+            return View(new UserDto());
         }
     }
 }

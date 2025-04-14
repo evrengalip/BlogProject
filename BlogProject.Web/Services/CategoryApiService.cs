@@ -28,29 +28,61 @@ namespace BlogProject.Web.Services
             return await _apiClient.GetAsync<List<CategoryDto>>($"{Endpoint}/deleted");
         }
 
-        public async Task<Category> GetCategoryByIdAsync(Guid id)
+        public async Task<CategoryDto> GetCategoryByIdAsync(Guid id)
         {
-            return await _apiClient.GetAsync<Category>($"{Endpoint}/{id}");
+            return await _apiClient.GetAsync<CategoryDto>($"{Endpoint}/{id}");
         }
 
-        public async Task<object> CreateCategoryAsync(CategoryAddDto categoryAddDto)
+        public async Task<bool> CreateCategoryAsync(CategoryAddDto categoryAddDto)
         {
-            return await _apiClient.PostAsync<object, CategoryAddDto>(Endpoint, categoryAddDto);
+            try
+            {
+                await _apiClient.PostAsync<object, CategoryAddDto>(Endpoint, categoryAddDto);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
-        public async Task<object> UpdateCategoryAsync(CategoryUpdateDto categoryUpdateDto)
+        public async Task<bool> UpdateCategoryAsync(CategoryUpdateDto categoryUpdateDto)
         {
-            return await _apiClient.PutAsync<object, CategoryUpdateDto>(Endpoint, categoryUpdateDto);
+            try
+            {
+                await _apiClient.PutAsync<object, CategoryUpdateDto>($"{Endpoint}/{categoryUpdateDto.Id}", categoryUpdateDto);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
-        public async Task<object> DeleteCategoryAsync(Guid id)
+        public async Task<bool> DeleteCategoryAsync(Guid id)
         {
-            return await _apiClient.DeleteAsync<object>($"{Endpoint}/{id}");
+            try
+            {
+                await _apiClient.DeleteAsync<object>($"{Endpoint}/{id}");
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
-        public async Task<object> UndoDeleteCategoryAsync(Guid id)
+        public async Task<bool> UndoDeleteCategoryAsync(Guid id)
         {
-            return await _apiClient.PutAsync<object, object>($"{Endpoint}/undo-delete/{id}", null);
+            try
+            {
+                await _apiClient.PutAsync<object, object>($"{Endpoint}/undo-delete/{id}", null);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

@@ -1,8 +1,8 @@
 ﻿@model ArticleDto
-@inject BlogProject.Service.Services.Abstractions.ICommentService CommentService
+@inject BlogProject.Web.Services.CommentApiService CommentService
 
 @{
-    var comments = await CommentService.GetAllCommentsByArticleIdAsync(Model.Id);
+    var comments = await CommentService.GetCommentsByArticleIdAsync(Model.Id);
     ViewBag.ArticleId = Model.Id;
 }
 

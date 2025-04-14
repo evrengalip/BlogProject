@@ -1,43 +1,25 @@
 ﻿using Microsoft.AspNetCore.Mvc.Filters;
-using BlogProject.Data.UnitOfWorks;
-using BlogProject.Entity.Entities;
+using BlogProject.Web.Services;
 
 namespace BlogProject.Web.Filters.ArticleVisitors
 {
     public class ArticleVisitorFilter : IAsyncActionFilter
     {
-        private readonly IUnitOfWork unitOfWork;
+        // Bu filtre API kullanıldığında farklı olacaktır, çünkü ziyaretçi takibi API tarafında yapılacaktır
+        // Bu örnekte basitçe gerektiğinde API'ye ziyaretçi bilgisi gönderebiliriz
 
-        public ArticleVisitorFilter(IUnitOfWork unitOfWork)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
+        public ArticleVisitorFilter(IHttpContextAccessor httpContextAccessor)
         {
-            this.unitOfWork = unitOfWork;
+            _httpContextAccessor = httpContextAccessor;
         }
 
-        //public bool Disable { get;set; }
-
-        public Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
+        public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
-            //if(Disable) return next();
-
-            List<Visitor> visitors = unitOfWork.GetRepository<Visitor>().GetAllAsync().Result;
-
-
-            string getIp = context.HttpContext.Connection.RemoteIpAddress.MapToIPv4().ToString();
-            string getUserAgent = context.HttpContext.Request.Headers["User-Agent"];
-
-            Visitor visitor = new(getIp, getUserAgent);
-
-
-
-            if (visitors.Any(x => x.IpAddress == visitor.IpAddress))
-                return next();
-            else
-            {
-                unitOfWork.GetRepository<Visitor>().AddAsync(visitor);
-                unitOfWork.Save();
-            }
-            return next();
-
+            // API'ye ziyaretçi bilgisi gönderme işlemi buraya eklenebilir
+            // Şu an sadece filteri atlamasını söylüyoruz
+            await next();
         }
     }
 }

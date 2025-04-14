@@ -1,5 +1,9 @@
 ﻿using BlogProject.Entity.DTOs.Users;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
+using System.Text.Json;
 
 namespace BlogProject.Web.Services
 {
@@ -23,51 +27,101 @@ namespace BlogProject.Web.Services
 
                 if (!string.IsNullOrEmpty(response.Token))
                 {
-                    // Store token in session
+                    // Token'ı session'da sakla
                     _httpContextAccessor.HttpContext.Session.SetString("JWTToken", response.Token);
 
-                    // Store user information in session
+                    // Kullanıcı bilgilerini session'da sakla
                     _httpContextAccessor.HttpContext.Session.SetString("UserName", response.User.UserName);
                     _httpContextAccessor.HttpContext.Session.SetString("FirstName", response.User.FirstName);
                     _httpContextAccessor.HttpContext.Session.SetString("LastName", response.User.LastName);
                     _httpContextAccessor.HttpContext.Session.SetString("Email", response.User.Email);
                     _httpContextAccessor.HttpContext.Session.SetString("Roles", string.Join(",", response.User.Roles));
+                    _httpContextAccessor.HttpContext.Session.SetString("UserId", response.User.Id.ToString());
 
-                    // Set token in the API client
+                    // API Client'a token'ı ayarla
                     _apiClient.SetAuthToken(response.Token);
+
+                    // Kimlik doğrulama cookie'si oluştur
+                    var claims = new List<Claim>
+                    {
+                        new Claim(ClaimTypes.Name, response.User.UserName),
+                        new Claim(ClaimTypes.Email, response.User.Email),
+                        new Claim(ClaimTypes.NameIdentifier, response.User.Id.ToString()),
+                        new Claim(ClaimTypes.GivenName, response.User.FirstName),
+                        new Claim(ClaimTypes.Surname, response.User.LastName)
+                    };
+
+                    // Rolleri claim olarak ekle
+                    foreach (var role in response.User.Roles)
+                    {
+                        claims.Add(new Claim(ClaimTypes.Role, role));
+                    }
+
+                    var claimsIdentity = new ClaimsIdentity(claims, "ApplicationCookie");
+                    var authProperties = new AuthenticationProperties
+                    {
+                        IsPersistent = loginDto.RememberMe,
+                        ExpiresUtc = DateTime.UtcNow.AddDays(7)
+                    };
+
+                    await _httpContextAccessor.HttpContext.SignInAsync(
+                        "ApplicationCookie",
+                        new ClaimsPrincipal(claimsIdentity),
+                        authProperties);
 
                     return true;
                 }
 
                 return false;
             }
-            catch
+            catch (Exception ex)
             {
+                // Loglama yapılabilir
                 return false;
             }
         }
 
-        public void Logout()
+        public async Task LogoutAsync()
         {
-            // Clear session
+            // Session'ı temizle
             _httpContextAccessor.HttpContext.Session.Clear();
 
-            // Remove token from API client
+            // API client'dan token'ı kaldır
             _apiClient.RemoveAuthToken();
+
+            // Kullanıcıyı çıkış yaptır
+            await _httpContextAccessor.HttpContext.SignOutAsync("ApplicationCookie");
         }
 
         public bool IsAuthenticated()
         {
-            return !string.IsNullOrEmpty(_httpContextAccessor.HttpContext?.Session.GetString("JWTToken"));
+            return _httpContextAccessor.HttpContext.User.Identity.IsAuthenticated;
         }
 
         public bool IsInRole(string role)
         {
-            var roles = _httpContextAccessor.HttpContext?.Session.GetString("Roles");
-            if (string.IsNullOrEmpty(roles))
-                return false;
+            return _httpContextAccessor.HttpContext.User.IsInRole(role);
+        }
 
-            return roles.Split(',').Any(r => r.Equals(role, StringComparison.OrdinalIgnoreCase));
+        public string GetUserName()
+        {
+            return _httpContextAccessor.HttpContext.User.Identity.Name;
+        }
+
+        public string GetFullName()
+        {
+            var firstName = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.GivenName);
+            var lastName = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Surname);
+            return $"{firstName} {lastName}";
+        }
+
+        public Guid GetUserId()
+        {
+            var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Guid.Empty;
+
+            return Guid.Parse(userId);
         }
 
         private class LoginResponse

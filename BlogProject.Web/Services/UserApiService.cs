@@ -28,19 +28,43 @@ namespace BlogProject.Web.Services
             return await _apiClient.GetAsync<UserDto>($"{Endpoint}/{id}");
         }
 
-        public async Task<object> CreateUserAsync(UserAddDto userAddDto)
+        public async Task<bool> CreateUserAsync(UserAddDto userAddDto)
         {
-            return await _apiClient.PostAsync<object, UserAddDto>(Endpoint, userAddDto);
+            try
+            {
+                await _apiClient.PostAsync<object, UserAddDto>(Endpoint, userAddDto);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
-        public async Task<object> UpdateUserAsync(UserUpdateDto userUpdateDto)
+        public async Task<bool> UpdateUserAsync(UserUpdateDto userUpdateDto)
         {
-            return await _apiClient.PutAsync<object, UserUpdateDto>(Endpoint, userUpdateDto);
+            try
+            {
+                await _apiClient.PutAsync<object, UserUpdateDto>($"{Endpoint}/{userUpdateDto.Id}", userUpdateDto);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
-        public async Task<object> DeleteUserAsync(Guid id)
+        public async Task<bool> DeleteUserAsync(Guid id)
         {
-            return await _apiClient.DeleteAsync<object>($"{Endpoint}/{id}");
+            try
+            {
+                await _apiClient.DeleteAsync<object>($"{Endpoint}/{id}");
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public async Task<UserProfileDto> GetUserProfileAsync()
@@ -48,7 +72,7 @@ namespace BlogProject.Web.Services
             return await _apiClient.GetAsync<UserProfileDto>($"{Endpoint}/profile");
         }
 
-        public async Task<object> UpdateUserProfileAsync(UserProfileDto userProfileDto)
+        public async Task<bool> UpdateUserProfileAsync(UserProfileDto userProfileDto)
         {
             var formData = new MultipartFormDataContent();
 
@@ -74,7 +98,15 @@ namespace BlogProject.Web.Services
                 formData.Add(fileContent, "Photo", userProfileDto.Photo.FileName);
             }
 
-            return await _apiClient.PutFormAsync<object>($"{Endpoint}/profile", formData);
+            try
+            {
+                await _apiClient.PutFormAsync<object>($"{Endpoint}/profile", formData);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

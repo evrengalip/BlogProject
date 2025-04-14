@@ -1,19 +1,20 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using BlogProject.Service.Services.Abstractions;
+using BlogProject.Web.Services;
 
 namespace BlogProject.Web.ViewComponents
 {
     public class HomeCategoriesViewComponent : ViewComponent
     {
-        private readonly ICategoryService categoryService;
+        private readonly CategoryApiService _categoryService;
 
-        public HomeCategoriesViewComponent(ICategoryService categoryService)
+        public HomeCategoriesViewComponent(CategoryApiService categoryService)
         {
-            this.categoryService = categoryService;
+            _categoryService = categoryService;
         }
+
         public async Task<IViewComponentResult> InvokeAsync()
         {
-            var categories = await categoryService.GetAllCategoriesNonDeletedTake24();
+            var categories = await _categoryService.GetTop24CategoriesAsync();
             return View(categories);
         }
     }

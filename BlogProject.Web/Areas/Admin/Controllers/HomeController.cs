@@ -1,9 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
-using BlogProject.Entity.Entities;
-using BlogProject.Service.Services.Abstractions;
+using BlogProject.Web.Services;
 
 namespace BlogProject.Web.Areas.Admin.Controllers
 {
@@ -11,36 +8,39 @@ namespace BlogProject.Web.Areas.Admin.Controllers
     [Authorize]
     public class HomeController : Controller
     {
-        private readonly IArticleService articleService;
-        private readonly IDashbordService dashbordService;
+        private readonly ArticleApiService _articleService;
+        private readonly DashboardApiService _dashboardService;
 
-        public HomeController(IArticleService articleService, IDashbordService dashbordService)
+        public HomeController(ArticleApiService articleService, DashboardApiService dashboardService)
         {
-            this.articleService = articleService;
-            this.dashbordService = dashbordService;
+            _articleService = articleService;
+            _dashboardService = dashboardService;
         }
+
         public async Task<IActionResult> Index()
         {
-            var articles = await articleService.GetAllArticlesWithCategoryNonDeletedAsync();
-
+            var articles = await _articleService.GetAllArticlesAsync();
             return View(articles);
         }
+
         [HttpGet]
         public async Task<IActionResult> YearlyArticleCounts()
         {
-            var count = await dashbordService.GetYearlyArticleCounts();
-            return Json(JsonConvert.SerializeObject(count));
+            var counts = await _dashboardService.GetYearlyArticleCountsAsync();
+            return Json(counts);
         }
+
         [HttpGet]
         public async Task<IActionResult> TotalArticleCount()
         {
-            var count = await dashbordService.GetTotalArticleCount();
+            var count = await _dashboardService.GetTotalArticleCountAsync();
             return Json(count);
         }
+
         [HttpGet]
         public async Task<IActionResult> TotalCategoryCount()
         {
-            var count = await dashbordService.GetTotalCategoryCount();
+            var count = await _dashboardService.GetTotalCategoryCountAsync();
             return Json(count);
         }
     }

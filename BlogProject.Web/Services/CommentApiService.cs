@@ -17,14 +17,30 @@ namespace BlogProject.Web.Services
             return await _apiClient.GetAsync<List<CommentDto>>($"{Endpoint}/article/{articleId}");
         }
 
-        public async Task<object> CreateCommentAsync(CommentAddDto commentAddDto)
+        public async Task<bool> CreateCommentAsync(CommentAddDto commentAddDto)
         {
-            return await _apiClient.PostAsync<object, CommentAddDto>(Endpoint, commentAddDto);
+            try
+            {
+                await _apiClient.PostAsync<object, CommentAddDto>(Endpoint, commentAddDto);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
-        public async Task<object> DeleteCommentAsync(Guid id)
+        public async Task<bool> DeleteCommentAsync(Guid id)
         {
-            return await _apiClient.DeleteAsync<object>($"{Endpoint}/{id}");
+            try
+            {
+                await _apiClient.DeleteAsync<object>($"{Endpoint}/{id}");
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

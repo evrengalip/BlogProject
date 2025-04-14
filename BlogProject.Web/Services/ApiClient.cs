@@ -1,5 +1,4 @@
 ﻿using System.Net.Http.Headers;
-using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
@@ -10,22 +9,18 @@ namespace BlogProject.Web.Services
     {
         private readonly HttpClient _httpClient;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly string _baseUrl;
 
         public ApiClient(IHttpContextAccessor httpContextAccessor, IConfiguration configuration)
         {
             _httpClient = new HttpClient();
             _httpContextAccessor = httpContextAccessor;
-            _baseUrl = configuration["ApiSettings:BaseUrl"] ?? "https://localhost:5002/api/";
+            _httpClient.BaseAddress = new Uri(configuration["ApiSettings:BaseUrl"]);
 
-            // Set default base address
-            _httpClient.BaseAddress = new Uri(_baseUrl);
-
-            // Set default headers
+            // Default Headers
             _httpClient.DefaultRequestHeaders.Accept.Clear();
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-            // Add auth token if available
+            // Session'dan token'ı al ve ekle
             var token = _httpContextAccessor.HttpContext?.Session.GetString("JWTToken");
             if (!string.IsNullOrEmpty(token))
             {
@@ -33,95 +28,202 @@ namespace BlogProject.Web.Services
             }
         }
 
-        // Generic GET method
+        // Generic GET method with error handling
         public async Task<T> GetAsync<T>(string endpoint)
         {
-            var response = await _httpClient.GetAsync(endpoint);
-            if (response.IsSuccessStatusCode)
+            try
             {
-                return await response.Content.ReadFromJsonAsync<T>();
-            }
+                var response = await _httpClient.GetAsync(endpoint);
 
-            throw new HttpRequestException($"Error: {response.StatusCode}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    return JsonSerializer.Deserialize<T>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                }
+
+                // 401 Unauthorized durumunda
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    // Session'ı temizle
+                    _httpContextAccessor.HttpContext.Session.Clear();
+                    throw new UnauthorizedAccessException("API erişim yetkisi reddedildi. Lütfen tekrar giriş yapın.");
+                }
+
+                throw new HttpRequestException($"API Hatası: {response.StatusCode}");
+            }
+            catch (Exception ex)
+            {
+                // Loglama yapılabilir
+                throw;
+            }
         }
 
-        // Generic POST method for application/json content
+        // POST method for application/json content
         public async Task<T> PostAsync<T, R>(string endpoint, R data)
         {
-            var jsonContent = new StringContent(
-                JsonSerializer.Serialize(data),
-                Encoding.UTF8,
-                "application/json");
-
-            var response = await _httpClient.PostAsync(endpoint, jsonContent);
-            if (response.IsSuccessStatusCode)
+            try
             {
-                return await response.Content.ReadFromJsonAsync<T>();
-            }
+                var jsonContent = new StringContent(
+                    JsonSerializer.Serialize(data),
+                    Encoding.UTF8,
+                    "application/json");
 
-            throw new HttpRequestException($"Error: {response.StatusCode}");
+                var response = await _httpClient.PostAsync(endpoint, jsonContent);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    return JsonSerializer.Deserialize<T>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                }
+
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    _httpContextAccessor.HttpContext.Session.Clear();
+                    throw new UnauthorizedAccessException("API erişim yetkisi reddedildi. Lütfen tekrar giriş yapın.");
+                }
+
+                throw new HttpRequestException($"API Hatası: {response.StatusCode}");
+            }
+            catch
+            {
+                throw;
+            }
         }
 
-        // Generic POST method for multipart/form-data content
+        // POST method for multipart/form-data content
         public async Task<T> PostFormAsync<T>(string endpoint, MultipartFormDataContent formData)
         {
-            var response = await _httpClient.PostAsync(endpoint, formData);
-            if (response.IsSuccessStatusCode)
+            try
             {
-                return await response.Content.ReadFromJsonAsync<T>();
-            }
+                // API çağrısını yapalım ve yanıtı alalım
+                var response = await _httpClient.PostAsync(endpoint, formData);
 
-            throw new HttpRequestException($"Error: {response.StatusCode}");
+                // Yanıt içeriğini alalım (hata mesajı için)
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    if (typeof(T) == typeof(object) && string.IsNullOrEmpty(responseContent))
+                        return default;
+
+                    return JsonSerializer.Deserialize<T>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                }
+
+                // Hata durumunda yanıt içeriğini loglayalım
+                Console.WriteLine($"API Hatası: {response.StatusCode}, Yanıt İçeriği: {responseContent}");
+
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    _httpContextAccessor.HttpContext.Session.Clear();
+                    throw new UnauthorizedAccessException("API erişim yetkisi reddedildi. Lütfen tekrar giriş yapın.");
+                }
+
+                throw new HttpRequestException($"API Hatası: {response.StatusCode}, Yanıt İçeriği: {responseContent}");
+            }
+            catch (Exception ex)
+            {
+                // Hata detaylarını konsola yazdıralım
+                Console.WriteLine($"API çağrısı sırasında hata: {ex.Message}");
+                if (ex.InnerException != null)
+                    Console.WriteLine($"İç hata: {ex.InnerException.Message}");
+
+                throw;
+            }
         }
 
-        // Generic PUT method for application/json content
+        // PUT method for application/json content
         public async Task<T> PutAsync<T, R>(string endpoint, R data)
         {
-            var jsonContent = new StringContent(
-                JsonSerializer.Serialize(data),
-                Encoding.UTF8,
-                "application/json");
-
-            var response = await _httpClient.PutAsync(endpoint, jsonContent);
-            if (response.IsSuccessStatusCode)
+            try
             {
-                return await response.Content.ReadFromJsonAsync<T>();
-            }
+                var jsonContent = new StringContent(
+                    JsonSerializer.Serialize(data),
+                    Encoding.UTF8,
+                    "application/json");
 
-            throw new HttpRequestException($"Error: {response.StatusCode}");
+                var response = await _httpClient.PutAsync(endpoint, jsonContent);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    return JsonSerializer.Deserialize<T>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                }
+
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    _httpContextAccessor.HttpContext.Session.Clear();
+                    throw new UnauthorizedAccessException("API erişim yetkisi reddedildi. Lütfen tekrar giriş yapın.");
+                }
+
+                throw new HttpRequestException($"API Hatası: {response.StatusCode}");
+            }
+            catch
+            {
+                throw;
+            }
         }
 
-        // Generic PUT method for multipart/form-data content
+        // PUT method for multipart/form-data content
         public async Task<T> PutFormAsync<T>(string endpoint, MultipartFormDataContent formData)
         {
-            var response = await _httpClient.PutAsync(endpoint, formData);
-            if (response.IsSuccessStatusCode)
+            try
             {
-                return await response.Content.ReadFromJsonAsync<T>();
-            }
+                var response = await _httpClient.PutAsync(endpoint, formData);
 
-            throw new HttpRequestException($"Error: {response.StatusCode}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    return JsonSerializer.Deserialize<T>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                }
+
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    _httpContextAccessor.HttpContext.Session.Clear();
+                    throw new UnauthorizedAccessException("API erişim yetkisi reddedildi. Lütfen tekrar giriş yapın.");
+                }
+
+                throw new HttpRequestException($"API Hatası: {response.StatusCode}");
+            }
+            catch
+            {
+                throw;
+            }
         }
 
-        // Generic DELETE method
+        // DELETE method
         public async Task<T> DeleteAsync<T>(string endpoint)
         {
-            var response = await _httpClient.DeleteAsync(endpoint);
-            if (response.IsSuccessStatusCode)
+            try
             {
-                return await response.Content.ReadFromJsonAsync<T>();
-            }
+                var response = await _httpClient.DeleteAsync(endpoint);
 
-            throw new HttpRequestException($"Error: {response.StatusCode}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    return JsonSerializer.Deserialize<T>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                }
+
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    _httpContextAccessor.HttpContext.Session.Clear();
+                    throw new UnauthorizedAccessException("API erişim yetkisi reddedildi. Lütfen tekrar giriş yapın.");
+                }
+
+                throw new HttpRequestException($"API Hatası: {response.StatusCode}");
+            }
+            catch
+            {
+                throw;
+            }
         }
 
-        // Method for setting the authorization token
+        // Token ayarlamak için method
         public void SetAuthToken(string token)
         {
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         }
 
-        // Method for removing the authorization token
+        // Token'ı kaldırmak için method
         public void RemoveAuthToken()
         {
             _httpClient.DefaultRequestHeaders.Authorization = null;

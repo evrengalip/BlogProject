@@ -1,16 +1,12 @@
-using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using NToastNotify;
-using BlogProject.Data.Context;
-using BlogProject.Data.Extensions;
-using BlogProject.Entity.Entities;
-using BlogProject.Service.Describers;
-using BlogProject.Service.Extensions;
 using BlogProject.Web.Filters.ArticleVisitors;
 using BlogProject.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Register API services
+// API servislerini kaydet
+builder.Services.AddHttpClient();
 builder.Services.AddSingleton<ApiClient>();
 builder.Services.AddScoped<ArticleApiService>();
 builder.Services.AddScoped<CategoryApiService>();
@@ -19,9 +15,13 @@ builder.Services.AddScoped<DashboardApiService>();
 builder.Services.AddScoped<AuthApiService>();
 builder.Services.AddScoped<UserApiService>();
 
-builder.Services.LoadDataLayerExtension(builder.Configuration);
-builder.Services.LoadServiceLayerExtension();
-builder.Services.AddSession();
+// Session yapýlandýrmasý
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromHours(2);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 
 // Add services to the container.
 builder.Services.AddControllersWithViews(opt =>
@@ -35,31 +35,27 @@ builder.Services.AddControllersWithViews(opt =>
     })
     .AddRazorRuntimeCompilation();
 
-builder.Services.AddIdentity<AppUser, AppRole>(opt =>
-{
-    opt.Password.RequireNonAlphanumeric = false;
-    opt.Password.RequireLowercase = false;
-    opt.Password.RequireUppercase = false;
-})
-    .AddRoleManager<RoleManager<AppRole>>()
-    .AddErrorDescriber<CustomIdentityErrorDescriber>()
-    .AddEntityFrameworkStores<AppDbContext>()
-    .AddDefaultTokenProviders();
+// HttpContextAccessor ekliyoruz
+builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
-builder.Services.ConfigureApplicationCookie(config =>
+// Kimlik doðrulama ayarlarý - Cookie tabanlý kimlik doðrulama
+builder.Services.AddAuthentication(options =>
 {
-    config.LoginPath = new PathString("/Admin/Auth/Login");
-    config.LogoutPath = new PathString("/Admin/Auth/Logout");
-    config.Cookie = new CookieBuilder
-    {
-        Name = "BlogProject",
-        HttpOnly = true,
-        SameSite = SameSiteMode.Strict,
-        SecurePolicy = CookieSecurePolicy.SameAsRequest //Always 
-    };
-    config.SlidingExpiration = true;
-    config.ExpireTimeSpan = TimeSpan.FromDays(7);
-    config.AccessDeniedPath = new PathString("/Admin/Auth/AccessDenied");
+    options.DefaultScheme = "ApplicationCookie";
+    options.DefaultSignInScheme = "ApplicationCookie";
+    options.DefaultChallengeScheme = "ApplicationCookie";
+})
+.AddCookie("ApplicationCookie", options =>
+{
+    options.LoginPath = "/Admin/Auth/Login";
+    options.LogoutPath = "/Admin/Auth/Logout";
+    options.AccessDeniedPath = "/Admin/Auth/AccessDenied";
+    options.Cookie.Name = "BlogProject";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SameSite = SameSiteMode.Strict;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    options.ExpireTimeSpan = TimeSpan.FromDays(7);
+    options.SlidingExpiration = true;
 });
 
 var app = builder.Build();
@@ -78,6 +74,8 @@ app.UseStaticFiles();
 app.UseSession();
 
 app.UseRouting();
+
+// Kimlik doðrulama ve yetkilendirme middleware'larýný doðru sýrayla ekleyin
 app.UseAuthentication();
 app.UseAuthorization();
 
