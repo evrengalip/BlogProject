@@ -3,15 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.11.35312.102
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlogProject.Web", "BlogProject.Web\BlogProject.Web.csproj", "{7532EABC-C06B-41F2-B7CA-22614F73EF5F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlogProject.Web", "BlogProject.Web\BlogProject.Web.csproj", "{7532EABC-C06B-41F2-B7CA-22614F73EF5F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlogProject.Entity", "BlogProject.Entity\BlogProject.Entity.csproj", "{E89B13B9-BD50-4CA0-9333-7F25B619AAED}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlogProject.Entity", "BlogProject.Entity\BlogProject.Entity.csproj", "{E89B13B9-BD50-4CA0-9333-7F25B619AAED}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlogProject.Data", "BlogProject.Data\BlogProject.Data.csproj", "{77A04CBA-30F1-48F2-B514-E12DC4B239CC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlogProject.Data", "BlogProject.Data\BlogProject.Data.csproj", "{77A04CBA-30F1-48F2-B514-E12DC4B239CC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlogProject.Service", "BlogProject.Service\BlogProject.Service.csproj", "{ACC9BFB0-0386-498B-AE44-E9EBFBE56A58}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlogProject.Service", "BlogProject.Service\BlogProject.Service.csproj", "{ACC9BFB0-0386-498B-AE44-E9EBFBE56A58}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlogProject.Core", "BlogProject.Core\BlogProject.Core.csproj", "{5A7BCD0F-7496-4EE8-954F-AA5B1608E1E6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlogProject.Core", "BlogProject.Core\BlogProject.Core.csproj", "{5A7BCD0F-7496-4EE8-954F-AA5B1608E1E6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlogProject.Api", "BlogProject.Api\BlogProject.Api.csproj", "{EF0FE11E-AD53-4F5B-94B8-A6FEBED6F5FC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{5A7BCD0F-7496-4EE8-954F-AA5B1608E1E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5A7BCD0F-7496-4EE8-954F-AA5B1608E1E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5A7BCD0F-7496-4EE8-954F-AA5B1608E1E6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF0FE11E-AD53-4F5B-94B8-A6FEBED6F5FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF0FE11E-AD53-4F5B-94B8-A6FEBED6F5FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF0FE11E-AD53-4F5B-94B8-A6FEBED6F5FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF0FE11E-AD53-4F5B-94B8-A6FEBED6F5FC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

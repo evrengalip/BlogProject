@@ -1,46 +1,36 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using BlogProject.Entity.DTOs.Users;
-using BlogProject.Entity.Entities;
+using BlogProject.Web.Services;
 
 namespace BlogProject.Web.Areas.Admin.Controllers
 {
     [Area("Admin")]
     public class AuthController : Controller
     {
-        private readonly UserManager<AppUser> userManager;
-        private readonly SignInManager<AppUser> signInManager;
+        private readonly AuthApiService _authApiService;
 
-        public AuthController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager)
+        public AuthController(AuthApiService authApiService)
         {
-            this.userManager = userManager;
-            this.signInManager = signInManager;
+            _authApiService = authApiService;
         }
+
         [HttpGet]
         public IActionResult Login()
         {
             return View();
         }
+
         [AllowAnonymous]
         [HttpPost]
         public async Task<IActionResult> Login(UserLoginDto userLoginDto)
         {
             if (ModelState.IsValid)
             {
-                var user = await userManager.FindByEmailAsync(userLoginDto.Email);
-                if (user != null)
+                var result = await _authApiService.LoginAsync(userLoginDto);
+                if (result)
                 {
-                    var result = await signInManager.PasswordSignInAsync(user, userLoginDto.Password, userLoginDto.RememberMe, false);
-                    if (result.Succeeded)
-                    {
-                        return RedirectToAction("Index", "Home", new { Area = "Admin" });
-                    }
-                    else
-                    {
-                        ModelState.AddModelError("", "E-posta adresiniz veya şifreniz yanlıştır.");
-                        return View();
-                    }
+                    return RedirectToAction("Index", "Home", new { Area = "Admin" });
                 }
                 else
                 {
@@ -53,16 +43,16 @@ namespace BlogProject.Web.Areas.Admin.Controllers
                 return View();
             }
         }
-        [Authorize]
+
         [HttpGet]
-        public async Task<IActionResult> Logout()
+        public IActionResult Logout()
         {
-            await signInManager.SignOutAsync();
+            _authApiService.Logout();
             return RedirectToAction("Index", "Home", new { Area = "" });
         }
-        [Authorize]
+
         [HttpGet]
-        public async Task<IActionResult> AccessDenied()
+        public IActionResult AccessDenied()
         {
             return View();
         }

@@ -6,12 +6,23 @@ using BlogProject.Entity.Entities;
 using BlogProject.Service.Describers;
 using BlogProject.Service.Extensions;
 using BlogProject.Web.Filters.ArticleVisitors;
+using BlogProject.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Register API services
+builder.Services.AddSingleton<ApiClient>();
+builder.Services.AddScoped<ArticleApiService>();
+builder.Services.AddScoped<CategoryApiService>();
+builder.Services.AddScoped<CommentApiService>();
+builder.Services.AddScoped<DashboardApiService>();
+builder.Services.AddScoped<AuthApiService>();
+builder.Services.AddScoped<UserApiService>();
 
 builder.Services.LoadDataLayerExtension(builder.Configuration);
 builder.Services.LoadServiceLayerExtension();
 builder.Services.AddSession();
+
 // Add services to the container.
 builder.Services.AddControllersWithViews(opt =>
 {
@@ -23,7 +34,6 @@ builder.Services.AddControllersWithViews(opt =>
         TimeOut = 3000,
     })
     .AddRazorRuntimeCompilation();
-
 
 builder.Services.AddIdentity<AppUser, AppRole>(opt =>
 {
@@ -52,9 +62,6 @@ builder.Services.ConfigureApplicationCookie(config =>
     config.AccessDeniedPath = new PathString("/Admin/Auth/AccessDenied");
 });
 
-
-
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -64,6 +71,7 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+
 app.UseNToastNotify();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
@@ -72,7 +80,6 @@ app.UseSession();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
-
 
 app.UseEndpoints(endpoints =>
 {
