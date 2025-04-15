@@ -129,18 +129,28 @@ namespace BlogProject.Web.Areas.Admin.Controllers
 
         public async Task<IActionResult> UndoDelete(Guid articleId)
         {
-            var article = await _articleService.GetArticleByIdAsync(articleId);
-            var result = await _articleService.UndoDeleteArticleAsync(articleId);
+            try
+            {
+                // Önce makaleyi geri al
+                var result = await _articleService.UndoDeleteArticleAsync(articleId);
 
-            if (result)
-            {
-                _toastNotification.AddSuccessToastMessage(
-                    Messages.Article.UndoDelete(article.Title),
-                    new ToastrOptions { Title = "Geri Alındı" });
+                if (result)
+                {
+                    // Başarılı olduysa, şimdi makale bilgilerini getir
+                    var article = await _articleService.GetArticleByIdAsync(articleId);
+                    _toastNotification.AddSuccessToastMessage(
+                        Messages.Article.UndoDelete(article.Title),
+                        new ToastrOptions { Title = "Geri Alındı" });
+                }
+                else
+                {
+                    _toastNotification.AddErrorToastMessage("Geri alma başarısız.", new ToastrOptions { Title = "Hata" });
+                }
             }
-            else
+            catch (Exception ex)
             {
-                _toastNotification.AddErrorToastMessage("Geri alma başarısız.", new ToastrOptions { Title = "Hata" });
+                _toastNotification.AddErrorToastMessage($"İşlem sırasında bir hata oluştu: {ex.Message}",
+                    new ToastrOptions { Title = "Hata" });
             }
 
             return RedirectToAction("Index", "Article", new { Area = "Admin" });
