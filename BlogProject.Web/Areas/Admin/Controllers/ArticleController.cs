@@ -3,12 +3,13 @@ using Microsoft.AspNetCore.Mvc;
 using NToastNotify;
 using BlogProject.Entity.DTOs.Articles;
 using BlogProject.Web.Consts;
-using BlogProject.Web.Services;
 using BlogProject.Web.ResultMessages;
+using BlogProject.Web.Services;
 
 namespace BlogProject.Web.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = $"{RoleConsts.Superadmin}, {RoleConsts.Admin}")]
     public class ArticleController : Controller
     {
         private readonly ArticleApiService _articleService;
@@ -34,7 +35,6 @@ namespace BlogProject.Web.Areas.Admin.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = $"{RoleConsts.Superadmin}, {RoleConsts.Admin}")]
         public async Task<IActionResult> DeletedArticle()
         {
             var articles = await _articleService.GetAllDeletedArticlesAsync();
@@ -42,7 +42,6 @@ namespace BlogProject.Web.Areas.Admin.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = $"{RoleConsts.Superadmin}, {RoleConsts.Admin}")]
         public async Task<IActionResult> Add()
         {
             var categories = await _categoryService.GetAllCategoriesAsync();
@@ -50,50 +49,33 @@ namespace BlogProject.Web.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = $"{RoleConsts.Superadmin}, {RoleConsts.Admin}")]
         public async Task<IActionResult> Add(ArticleAddDto articleAddDto)
         {
-            if (ModelState.IsValid)
+            var result = await _articleService.CreateArticleAsync(articleAddDto);
+
+            if (result)
             {
-                try
-                {
-                    var result = await _articleService.CreateArticleAsync(articleAddDto);
-                    if (result)
-                    {
-                        _toastNotification.AddSuccessToastMessage(Messages.Article.Add(articleAddDto.Title), new ToastrOptions { Title = "İşlem Başarılı" });
-                        return RedirectToAction("Index", "Article", new { Area = "Admin" });
-                    }
-                    else
-                    {
-                        _toastNotification.AddErrorToastMessage("Makale eklenirken bir hata oluştu.", new ToastrOptions { Title = "İşlem Başarısız" });
-                        var categories = await _categoryService.GetAllCategoriesAsync();
-                        articleAddDto.Categories = categories;
-                        return View(articleAddDto);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    // Detaylı hata bilgisi gösteriyoruz
-                    _toastNotification.AddErrorToastMessage($"Hata: {ex.Message}", new ToastrOptions { Title = "İşlem Başarısız" });
-                    var categories = await _categoryService.GetAllCategoriesAsync();
-                    articleAddDto.Categories = categories;
-                    return View(articleAddDto);
-                }
+                _toastNotification.AddSuccessToastMessage(
+                    Messages.Article.Add(articleAddDto.Title),
+                    new ToastrOptions { Title = "İşlem Başarılı" });
+
+                return RedirectToAction("Index", "Article", new { Area = "Admin" });
             }
 
-            var categoriesForError = await _categoryService.GetAllCategoriesAsync();
-            articleAddDto.Categories = categoriesForError;
+            _toastNotification.AddErrorToastMessage("Makale eklenemedi.", new ToastrOptions { Title = "Hata" });
+
+            var categories = await _categoryService.GetAllCategoriesAsync();
+            articleAddDto.Categories = categories;
             return View(articleAddDto);
         }
 
         [HttpGet]
-        [Authorize(Roles = $"{RoleConsts.Superadmin}, {RoleConsts.Admin}")]
         public async Task<IActionResult> Update(Guid articleId)
         {
             var article = await _articleService.GetArticleByIdAsync(articleId);
             var categories = await _categoryService.GetAllCategoriesAsync();
 
-            var articleUpdateDto = new ArticleUpdateDto
+            var dto = new ArticleUpdateDto
             {
                 Id = article.Id,
                 Title = article.Title,
@@ -103,36 +85,29 @@ namespace BlogProject.Web.Areas.Admin.Controllers
                 Categories = categories
             };
 
-            return View(articleUpdateDto);
+            return View(dto);
         }
 
         [HttpPost]
-        [Authorize(Roles = $"{RoleConsts.Superadmin}, {RoleConsts.Admin}")]
         public async Task<IActionResult> Update(ArticleUpdateDto articleUpdateDto)
         {
-            if (ModelState.IsValid)
+            var result = await _articleService.UpdateArticleAsync(articleUpdateDto);
+
+            if (result)
             {
-                var result = await _articleService.UpdateArticleAsync(articleUpdateDto);
-                if (result)
-                {
-                    _toastNotification.AddSuccessToastMessage(Messages.Article.Update(articleUpdateDto.Title), new ToastrOptions() { Title = "İşlem Başarılı" });
-                    return RedirectToAction("Index", "Article", new { Area = "Admin" });
-                }
-                else
-                {
-                    _toastNotification.AddErrorToastMessage("Makale güncellenirken bir hata oluştu.", new ToastrOptions { Title = "İşlem Başarısız" });
-                    var categories = await _categoryService.GetAllCategoriesAsync();
-                    articleUpdateDto.Categories = categories;
-                    return View(articleUpdateDto);
-                }
+                _toastNotification.AddSuccessToastMessage(
+                    Messages.Article.Update(articleUpdateDto.Title),
+                    new ToastrOptions { Title = "İşlem Başarılı" });
+
+                return RedirectToAction("Index", "Article", new { Area = "Admin" });
             }
 
-            var categoriesForError = await _categoryService.GetAllCategoriesAsync();
-            articleUpdateDto.Categories = categoriesForError;
+            _toastNotification.AddErrorToastMessage("Makale güncellenemedi.", new ToastrOptions { Title = "Hata" });
+
+            articleUpdateDto.Categories = await _categoryService.GetAllCategoriesAsync();
             return View(articleUpdateDto);
         }
 
-        [Authorize(Roles = $"{RoleConsts.Superadmin}, {RoleConsts.Admin}")]
         public async Task<IActionResult> Delete(Guid articleId)
         {
             var article = await _articleService.GetArticleByIdAsync(articleId);
@@ -140,17 +115,18 @@ namespace BlogProject.Web.Areas.Admin.Controllers
 
             if (result)
             {
-                _toastNotification.AddSuccessToastMessage(Messages.Article.Delete(article.Title), new ToastrOptions() { Title = "İşlem Başarılı" });
+                _toastNotification.AddSuccessToastMessage(
+                    Messages.Article.Delete(article.Title),
+                    new ToastrOptions { Title = "Silme Başarılı" });
             }
             else
             {
-                _toastNotification.AddErrorToastMessage("Makale silinirken bir hata oluştu.", new ToastrOptions { Title = "İşlem Başarısız" });
+                _toastNotification.AddErrorToastMessage("Silme başarısız.", new ToastrOptions { Title = "Hata" });
             }
 
             return RedirectToAction("Index", "Article", new { Area = "Admin" });
         }
 
-        [Authorize(Roles = $"{RoleConsts.Superadmin}, {RoleConsts.Admin}")]
         public async Task<IActionResult> UndoDelete(Guid articleId)
         {
             var article = await _articleService.GetArticleByIdAsync(articleId);
@@ -158,11 +134,13 @@ namespace BlogProject.Web.Areas.Admin.Controllers
 
             if (result)
             {
-                _toastNotification.AddSuccessToastMessage(Messages.Article.UndoDelete(article.Title), new ToastrOptions() { Title = "İşlem Başarılı" });
+                _toastNotification.AddSuccessToastMessage(
+                    Messages.Article.UndoDelete(article.Title),
+                    new ToastrOptions { Title = "Geri Alındı" });
             }
             else
             {
-                _toastNotification.AddErrorToastMessage("Makale geri alınırken bir hata oluştu.", new ToastrOptions { Title = "İşlem Başarısız" });
+                _toastNotification.AddErrorToastMessage("Geri alma başarısız.", new ToastrOptions { Title = "Hata" });
             }
 
             return RedirectToAction("Index", "Article", new { Area = "Admin" });

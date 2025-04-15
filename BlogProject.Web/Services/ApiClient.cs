@@ -90,43 +90,35 @@ namespace BlogProject.Web.Services
             }
         }
 
-        // POST method for multipart/form-data content
+        // ApiClient.cs içindeki PostFormAsync metodu
         public async Task<T> PostFormAsync<T>(string endpoint, MultipartFormDataContent formData)
         {
             try
             {
-                // API çağrısını yapalım ve yanıtı alalım
+                Console.WriteLine($"API POST İsteği: {endpoint}");
+                // İstek gönderiliyor
                 var response = await _httpClient.PostAsync(endpoint, formData);
 
-                // Yanıt içeriğini alalım (hata mesajı için)
+                // Yanıt alındı
                 var responseContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"API Yanıt Kodu: {response.StatusCode}");
+                Console.WriteLine($"API Yanıt İçeriği: {responseContent}");
 
                 if (response.IsSuccessStatusCode)
                 {
+                    // Başarılı
                     if (typeof(T) == typeof(object) && string.IsNullOrEmpty(responseContent))
                         return default;
 
                     return JsonSerializer.Deserialize<T>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                 }
 
-                // Hata durumunda yanıt içeriğini loglayalım
-                Console.WriteLine($"API Hatası: {response.StatusCode}, Yanıt İçeriği: {responseContent}");
-
-                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-                {
-                    _httpContextAccessor.HttpContext.Session.Clear();
-                    throw new UnauthorizedAccessException("API erişim yetkisi reddedildi. Lütfen tekrar giriş yapın.");
-                }
-
-                throw new HttpRequestException($"API Hatası: {response.StatusCode}, Yanıt İçeriği: {responseContent}");
+                // Hata durumu için detaylar
+                throw new HttpRequestException($"API Hatası: {response.StatusCode}, Yanıt: {responseContent}");
             }
             catch (Exception ex)
             {
-                // Hata detaylarını konsola yazdıralım
-                Console.WriteLine($"API çağrısı sırasında hata: {ex.Message}");
-                if (ex.InnerException != null)
-                    Console.WriteLine($"İç hata: {ex.InnerException.Message}");
-
+                Console.WriteLine($"API İstemci Hatası: {ex.Message}");
                 throw;
             }
         }

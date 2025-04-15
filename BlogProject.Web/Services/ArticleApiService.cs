@@ -49,6 +49,13 @@ namespace BlogProject.Web.Services
         {
             try
             {
+                // Debug bilgisi ekleyin
+                Console.WriteLine("==== MAKALE EKLEME İSTEĞİ BAŞLATILIYOR ====");
+                Console.WriteLine($"Başlık: {articleAddDto.Title}");
+                Console.WriteLine($"İçerik uzunluğu: {articleAddDto.Content?.Length ?? 0} karakter");
+                Console.WriteLine($"Kategori ID: {articleAddDto.CategoryId}");
+                Console.WriteLine($"Fotoğraf: {(articleAddDto.Photo != null ? articleAddDto.Photo.FileName : "Yok")}");
+
                 var formData = new MultipartFormDataContent();
 
                 // Form alanlarını ekleyin
@@ -65,18 +72,26 @@ namespace BlogProject.Web.Services
                     var fileContent = new ByteArrayContent(ms.ToArray());
                     fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(articleAddDto.Photo.ContentType);
                     formData.Add(fileContent, "Photo", articleAddDto.Photo.FileName);
+                    Console.WriteLine($"Fotoğraf eklendi: {articleAddDto.Photo.FileName}, Boyut: {ms.Length} byte");
                 }
 
                 // API çağrısını yapın ve sonucu kontrol edin
-                await _apiClient.PostFormAsync<object>(Endpoint, formData);
+                var result = await _apiClient.PostFormAsync<object>(Endpoint, formData);
+                Console.WriteLine("API isteği başarıyla tamamlandı.");
                 return true;
             }
             catch (Exception ex)
             {
-                // Hata loglama
-                Console.WriteLine($"Makale eklenirken hata oluştu: {ex.Message}");
+                // Detaylı hata bilgisi
+                Console.WriteLine($"==== MAKALE EKLEME HATASI ====");
+                Console.WriteLine($"Hata Mesajı: {ex.Message}");
+                Console.WriteLine($"Hata Yeri: {ex.StackTrace}");
+
                 if (ex.InnerException != null)
-                    Console.WriteLine($"İç hata: {ex.InnerException.Message}");
+                {
+                    Console.WriteLine($"İç Hata Mesajı: {ex.InnerException.Message}");
+                    Console.WriteLine($"İç Hata Yeri: {ex.InnerException.StackTrace}");
+                }
 
                 return false;
             }

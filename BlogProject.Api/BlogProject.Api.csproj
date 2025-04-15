@@ -1,10 +1,15 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\evrena\.nuget\packages\ntoastnotify\8.0.0\contentFiles\any\net6.0\wwwroot\noty.js" />
+    <Content Remove="C:\Users\evrena\.nuget\packages\ntoastnotify\8.0.0\contentFiles\any\net6.0\wwwroot\toastr.js" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.15" />
@@ -15,6 +20,7 @@
   <ItemGroup>
     <ProjectReference Include="..\BlogProject.Data\BlogProject.Data.csproj" />
     <ProjectReference Include="..\BlogProject.Service\BlogProject.Service.csproj" />
+    <ProjectReference Include="..\BlogProject.Web\BlogProject.Web.csproj" />
   </ItemGroup>
 
 </Project>
