@@ -38,9 +38,10 @@ namespace BlogProject.Service.Services.Concrete
             var sortedArticles = isAscending
                 ? articles.OrderBy(a => a.CreatedDate).Skip((currentPage - 1) * pageSize).Take(pageSize).ToList()
                 : articles.OrderByDescending(a => a.CreatedDate).Skip((currentPage - 1) * pageSize).Take(pageSize).ToList();
+            var mappedArticles = mapper.Map<IList<ArticleDto>>(sortedArticles);
             return new ArticleListDto
             {
-                Articles = sortedArticles,
+                Articles = mappedArticles,
                 CategoryId = categoryId == null ? null : categoryId.Value,
                 CurrentPage = currentPage,
                 PageSize = pageSize,
@@ -158,9 +159,10 @@ namespace BlogProject.Service.Services.Concrete
             var sortedArticles = isAscending
                 ? articles.OrderBy(a => a.CreatedDate).Skip((currentPage - 1) * pageSize).Take(pageSize).ToList()
                 : articles.OrderByDescending(a => a.CreatedDate).Skip((currentPage - 1) * pageSize).Take(pageSize).ToList();
+            var mappedArticles = mapper.Map<IList<ArticleDto>>(sortedArticles);
             return new ArticleListDto
             {
-                Articles = sortedArticles,
+                Articles = mappedArticles,
                 CurrentPage = currentPage,
                 PageSize = pageSize,
                 TotalCount = articles.Count,

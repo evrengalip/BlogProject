@@ -1,65 +1,85 @@
-﻿using BlogProject.Entity.DTOs.Users;
-using BlogProject.Entity.Entities;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
+﻿using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using System.Threading.Tasks;
+using BlogProject.Entity.DTOs.Users;
+using BlogProject.Entity.Entities;
+using BlogProject.Service.Extensions;
+using BlogProject.Service.Services.Abstractions;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 
-namespace BlogProject.Api.Controllers
+namespace BlogProject.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class AuthController : ControllerBase
     {
         private readonly UserManager<AppUser> _userManager;
-        private readonly SignInManager<AppUser> _signInManager;
+        private readonly RoleManager<AppRole> _roleManager;
         private readonly IConfiguration _configuration;
+        private readonly SignInManager<AppUser> _signInManager;
+        private readonly IUserService _userService;
 
-        public AuthController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, IConfiguration configuration)
+        public AuthController(
+            UserManager<AppUser> userManager,
+            RoleManager<AppRole> roleManager,
+            IConfiguration configuration,
+            SignInManager<AppUser> signInManager,
+            IUserService userService)
         {
             _userManager = userManager;
-            _signInManager = signInManager;
+            _roleManager = roleManager;
             _configuration = configuration;
+            _signInManager = signInManager;
+            _userService = userService;
         }
 
-        [HttpPost("login")]
+        [HttpPost]
+        [Route("login")]
         public async Task<IActionResult> Login([FromBody] UserLoginDto loginDto)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
             var user = await _userManager.FindByEmailAsync(loginDto.Email);
             if (user == null)
-            {
-                return Unauthorized(new { message = "Invalid email or password" });
-            }
+                return BadRequest(new { message = "Email veya şifre hatalı" });
 
-            var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
+            var result = await _signInManager.PasswordSignInAsync(user, loginDto.Password, loginDto.RememberMe, false);
             if (!result.Succeeded)
-            {
-                return Unauthorized(new { message = "Invalid email or password" });
-            }
+                return BadRequest(new { message = "Email veya şifre hatalı" });
 
             var userRoles = await _userManager.GetRolesAsync(user);
 
-            var authClaims = new List<Claim>
+            var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.UserName),
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.GivenName, user.FirstName),
+                new Claim(ClaimTypes.Surname, user.LastName),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             };
 
             foreach (var userRole in userRoles)
             {
-                authClaims.Add(new Claim(ClaimTypes.Role, userRole));
+                claims.Add(new Claim(ClaimTypes.Role, userRole));
             }
 
-            var token = GetToken(authClaims);
+            var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
+
+            var token = new JwtSecurityToken(
+                issuer: _configuration["JWT:ValidIssuer"],
+                audience: _configuration["JWT:ValidAudience"],
+                expires: DateTime.Now.AddHours(3),
+                claims: claims,
+                signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
+            );
 
             return Ok(new
             {
@@ -77,30 +97,92 @@ namespace BlogProject.Api.Controllers
             });
         }
 
-        private JwtSecurityToken GetToken(List<Claim> authClaims)
+        [HttpPost]
+        [Route("register")]
+        public async Task<IActionResult> Register([FromBody] UserRegisterDto registerDto)
         {
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
-                _configuration["Jwt:Key"] ?? "BlogProjectDefaultSecurityKey2025"));
+            // Email zaten var mı kontrol et
+            var userExists = await _userManager.FindByEmailAsync(registerDto.Email);
+            if (userExists != null)
+                return BadRequest(new { Succeeded = false, Errors = new List<string> { "DuplicateEmail" } });
 
-            var tokenDescriptor = new SecurityTokenDescriptor
+            // Şifreler uyuşuyor mu kontrol et
+            if (registerDto.Password != registerDto.ConfirmPassword)
+                return BadRequest(new { Succeeded = false, Errors = new List<string> { "PasswordMismatch" } });
+
+            // Yeni kullanıcı oluştur
+            var user = new AppUser
             {
-                Subject = new ClaimsIdentity(authClaims),
-                Expires = DateTime.UtcNow.AddDays(7),
-                SigningCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature),
-                Issuer = _configuration["Jwt:Issuer"],
-                Audience = _configuration["Jwt:Audience"]
+                UserName = registerDto.Email,
+                Email = registerDto.Email,
+                FirstName = registerDto.FirstName,
+                LastName = registerDto.LastName,
+                PhoneNumber = registerDto.PhoneNumber,
+                EmailConfirmed = false,
+                SecurityStamp = Guid.NewGuid().ToString()
             };
 
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var token = tokenHandler.CreateToken(tokenDescriptor);
+            // Kullanıcıyı kaydet
+            var result = await _userManager.CreateAsync(user, registerDto.Password);
+            if (!result.Succeeded)
+                return BadRequest(new
+                {
+                    Succeeded = false,
+                    Errors = result.Errors.Select(e => e.Code).ToList()
+                });
 
-            return new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
-                expires: DateTime.Now.AddDays(7),
-                claims: authClaims,
-                signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
-            );
+            // Default User rolünü ata
+            if (await _roleManager.RoleExistsAsync("User"))
+            {
+                await _userManager.AddToRoleAsync(user, "User");
+            }
+
+            return Ok(new { Succeeded = true, Errors = new List<string>() });
+        }
+
+        [Authorize]
+        [HttpPost]
+        [Route("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            return Ok(new { message = "Başarıyla çıkış yapıldı" });
+        }
+
+        [Authorize]
+        [HttpGet]
+        [Route("current-user")]
+        public async Task<IActionResult> GetCurrentUser()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                return NotFound();
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            return Ok(new
+            {
+                Id = user.Id,
+                UserName = user.UserName,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                PhoneNumber = user.PhoneNumber,
+                Roles = roles
+            });
+        }
+
+        [Authorize(Roles = "Admin,Superadmin")]
+        [HttpGet]
+        [Route("users")]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            var users = await _userService.GetAllUsersWithRoleAsync();
+            return Ok(users);
         }
     }
 }

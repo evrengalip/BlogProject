@@ -113,12 +113,14 @@
                                     </svg>
 
                                 </span>
-                                <span class="app-brand-text demo text-body fw-bolder">Sneat</span>
+                                <span class="app-brand-text demo text-body fw-bolder">Blog</span>
                             </a>
                         </div>
                         <!-- /Logo -->
-                        <h4 class="mb-2">Welcome to Sneat! 👋</h4>
-                        <p class="mb-4">Please sign-in to your account and start the adventure</p>
+                        <h4 class="mb-2">Blog Admin Paneline Hoşgeldiniz 👋</h4>
+                        <p class="mb-4">
+                            Lütfen hesabınıza giriş yapın
+                        </p>
 
                         <form asp-controller="Auth" asp-action="Login"  id="formAuthentication" class="mb-3" method="post">
                             <div asp-validation-summary="All"></div>
@@ -155,9 +157,10 @@
 
                         <p class="text-center">
                             <span>New on our platform?</span>
-                            <a href="auth-register-basic.html">
+                            <a asp-controller="Auth" asp-action="Register">
                                 <span>Create an account</span>
                             </a>
+
                         </p>
                     </div>
                 </div>

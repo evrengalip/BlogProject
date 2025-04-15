@@ -45,9 +45,10 @@ namespace BlogProject.Service.Services.Concrete
                 {
                     comment.UserFirstName = matchingComment.User.FirstName;
                     comment.UserLastName = matchingComment.User.LastName;
-                    comment.UserImageUrl = matchingComment.User.Image.FileName;
+                    comment.UserImageUrl = matchingComment.User.Image?.FileName ?? "default-user.jpg";
                 }
             }
+
 
             return mappedComments;
         }

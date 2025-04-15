@@ -35,6 +35,8 @@ namespace BlogProject.Web.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> Add(UserAddDto userAddDto)
         {
+
+            ModelState.Remove("Roles");
             if (ModelState.IsValid)
             {
                 var result = await _userService.CreateUserAsync(userAddDto);
@@ -128,6 +130,8 @@ namespace BlogProject.Web.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> Profile(UserProfileDto userProfileDto)
         {
+
+            ModelState.Remove("Image");
             if (ModelState.IsValid)
             {
                 var result = await _userService.UpdateUserProfileAsync(userProfileDto);

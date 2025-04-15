@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication.Cookies;
+ï»¿using Microsoft.AspNetCore.Authentication.Cookies;
 using NToastNotify;
 using BlogProject.Web.Filters.ArticleVisitors;
 using BlogProject.Web.Services;
@@ -15,7 +15,7 @@ builder.Services.AddScoped<DashboardApiService>();
 builder.Services.AddScoped<AuthApiService>();
 builder.Services.AddScoped<UserApiService>();
 
-// Session yapýlandýrmasý
+// Session yapï¿½landï¿½rmasï¿½
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromHours(2);
@@ -38,7 +38,7 @@ builder.Services.AddControllersWithViews(opt =>
 // HttpContextAccessor ekliyoruz
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
-// Kimlik doðrulama ayarlarý - Cookie tabanlý kimlik doðrulama
+// Kimlik doï¿½rulama ayarlarï¿½ - Cookie tabanlï¿½ kimlik doï¿½rulama
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultScheme = "ApplicationCookie";
@@ -75,7 +75,7 @@ app.UseSession();
 
 app.UseRouting();
 
-// Kimlik doðrulama ve yetkilendirme middleware'larýný doðru sýrayla ekleyin
+// Kimlik doï¿½rulama ve yetkilendirme middleware'larï¿½nï¿½ doï¿½ru sï¿½rayla ekleyin
 app.UseAuthentication();
 app.UseAuthorization();
 

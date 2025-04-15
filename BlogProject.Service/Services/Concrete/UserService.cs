@@ -117,7 +117,12 @@ namespace BlogProject.Service.Services.Concrete
 
             var getUserWithImage = await unitOfWork.GetRepository<AppUser>().GetAsync(x => x.Id == userId, x => x.Image);
             var map = mapper.Map<UserProfileDto>(getUserWithImage);
-            map.Image.FileName = getUserWithImage.Image.FileName;
+            map.ImagePath = getUserWithImage.Image != null
+    ? getUserWithImage.Image.FileName  
+    : "user-images/default-user.jpg";
+
+
+
 
             return map;
         }

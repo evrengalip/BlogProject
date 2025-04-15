@@ -1,7 +1,7 @@
 ﻿using System.Net.Http.Headers;
 using System.Text;
-using System.Text.Json;
 using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
 
 namespace BlogProject.Web.Services
 {
@@ -16,11 +16,9 @@ namespace BlogProject.Web.Services
             _httpContextAccessor = httpContextAccessor;
             _httpClient.BaseAddress = new Uri(configuration["ApiSettings:BaseUrl"]);
 
-            // Default Headers
             _httpClient.DefaultRequestHeaders.Accept.Clear();
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-            // Session'dan token'ı al ve ekle
             var token = _httpContextAccessor.HttpContext?.Session.GetString("JWTToken");
             if (!string.IsNullOrEmpty(token))
             {
@@ -28,7 +26,6 @@ namespace BlogProject.Web.Services
             }
         }
 
-        // Generic GET method with error handling
         public async Task<T> GetAsync<T>(string endpoint)
         {
             try
@@ -38,33 +35,29 @@ namespace BlogProject.Web.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
-                    return JsonSerializer.Deserialize<T>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    return JsonConvert.DeserializeObject<T>(content);
                 }
 
-                // 401 Unauthorized durumunda
                 if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                 {
-                    // Session'ı temizle
                     _httpContextAccessor.HttpContext.Session.Clear();
                     throw new UnauthorizedAccessException("API erişim yetkisi reddedildi. Lütfen tekrar giriş yapın.");
                 }
 
                 throw new HttpRequestException($"API Hatası: {response.StatusCode}");
             }
-            catch (Exception ex)
+            catch
             {
-                // Loglama yapılabilir
                 throw;
             }
         }
 
-        // POST method for application/json content
         public async Task<T> PostAsync<T, R>(string endpoint, R data)
         {
             try
             {
                 var jsonContent = new StringContent(
-                    JsonSerializer.Serialize(data),
+                    JsonConvert.SerializeObject(data),
                     Encoding.UTF8,
                     "application/json");
 
@@ -73,7 +66,7 @@ namespace BlogProject.Web.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
-                    return JsonSerializer.Deserialize<T>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    return JsonConvert.DeserializeObject<T>(content);
                 }
 
                 if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
@@ -90,46 +83,35 @@ namespace BlogProject.Web.Services
             }
         }
 
-        // ApiClient.cs içindeki PostFormAsync metodu
         public async Task<T> PostFormAsync<T>(string endpoint, MultipartFormDataContent formData)
         {
             try
             {
-                Console.WriteLine($"API POST İsteği: {endpoint}");
-                // İstek gönderiliyor
                 var response = await _httpClient.PostAsync(endpoint, formData);
-
-                // Yanıt alındı
                 var responseContent = await response.Content.ReadAsStringAsync();
-                Console.WriteLine($"API Yanıt Kodu: {response.StatusCode}");
-                Console.WriteLine($"API Yanıt İçeriği: {responseContent}");
 
                 if (response.IsSuccessStatusCode)
                 {
-                    // Başarılı
                     if (typeof(T) == typeof(object) && string.IsNullOrEmpty(responseContent))
                         return default;
 
-                    return JsonSerializer.Deserialize<T>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    return JsonConvert.DeserializeObject<T>(responseContent);
                 }
 
-                // Hata durumu için detaylar
                 throw new HttpRequestException($"API Hatası: {response.StatusCode}, Yanıt: {responseContent}");
             }
-            catch (Exception ex)
+            catch
             {
-                Console.WriteLine($"API İstemci Hatası: {ex.Message}");
                 throw;
             }
         }
 
-        // PUT method for application/json content
         public async Task<T> PutAsync<T, R>(string endpoint, R data)
         {
             try
             {
                 var jsonContent = new StringContent(
-                    JsonSerializer.Serialize(data),
+                    JsonConvert.SerializeObject(data),
                     Encoding.UTF8,
                     "application/json");
 
@@ -138,7 +120,7 @@ namespace BlogProject.Web.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
-                    return JsonSerializer.Deserialize<T>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    return JsonConvert.DeserializeObject<T>(content);
                 }
 
                 if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
@@ -155,7 +137,6 @@ namespace BlogProject.Web.Services
             }
         }
 
-        // PUT method for multipart/form-data content
         public async Task<T> PutFormAsync<T>(string endpoint, MultipartFormDataContent formData)
         {
             try
@@ -165,7 +146,7 @@ namespace BlogProject.Web.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
-                    return JsonSerializer.Deserialize<T>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    return JsonConvert.DeserializeObject<T>(content);
                 }
 
                 if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
@@ -182,7 +163,6 @@ namespace BlogProject.Web.Services
             }
         }
 
-        // DELETE method
         public async Task<T> DeleteAsync<T>(string endpoint)
         {
             try
@@ -192,7 +172,7 @@ namespace BlogProject.Web.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
-                    return JsonSerializer.Deserialize<T>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    return JsonConvert.DeserializeObject<T>(content);
                 }
 
                 if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
@@ -209,13 +189,11 @@ namespace BlogProject.Web.Services
             }
         }
 
-        // Token ayarlamak için method
         public void SetAuthToken(string token)
         {
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         }
 
-        // Token'ı kaldırmak için method
         public void RemoveAuthToken()
         {
             _httpClient.DefaultRequestHeaders.Authorization = null;

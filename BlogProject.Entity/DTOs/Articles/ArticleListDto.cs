@@ -10,7 +10,7 @@ namespace BlogProject.Entity.DTOs.Articles
 {
     public class ArticleListDto
     {
-        public IList<Article> Articles { get; set; }
+        public IList<ArticleDto> Articles { get; set; }
         public Guid? CategoryId { get; set; }
         public virtual int CurrentPage { get; set; } = 1;
         public virtual int PageSize { get; set; } = 3;

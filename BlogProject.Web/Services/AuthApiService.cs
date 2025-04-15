@@ -81,6 +81,22 @@ namespace BlogProject.Web.Services
             }
         }
 
+        public async Task<(bool Succeeded, List<string> Errors)> RegisterAsync(UserRegisterDto registerDto)
+        {
+            try
+            {
+                var response = await _apiClient.PostAsync<RegisterResponse, UserRegisterDto>($"{Endpoint}/register", registerDto);
+                return (response.Succeeded, response.Errors);
+            }
+            catch (Exception ex)
+            {
+                // Loglama yapılabilir
+                return (false, new List<string> { ex.Message });
+            }
+        }
+
+       
+
         public async Task LogoutAsync()
         {
             // Session'ı temizle
@@ -130,6 +146,13 @@ namespace BlogProject.Web.Services
             public DateTime Expiration { get; set; }
             public UserInfo User { get; set; }
         }
+
+        private class RegisterResponse
+        {
+            public bool Succeeded { get; set; }
+            public List<string> Errors { get; set; } = new List<string>();
+        }
+
 
         private class UserInfo
         {

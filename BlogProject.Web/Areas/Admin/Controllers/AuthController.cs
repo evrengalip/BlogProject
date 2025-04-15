@@ -59,6 +59,68 @@ namespace BlogProject.Web.Areas.Admin.Controllers
         }
 
         [HttpGet]
+        public IActionResult Register()
+        {
+            if (_authApiService.IsAuthenticated())
+            {
+                return RedirectToAction("Index", "Home", new { Area = "Admin" });
+            }
+
+            return View();
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        public async Task<IActionResult> Register(UserRegisterDto userRegisterDto)
+        {
+            if (ModelState.IsValid)
+            {
+                var result = await _authApiService.RegisterAsync(userRegisterDto);
+                if (result.Succeeded)
+                {
+                    _toastNotification.AddSuccessToastMessage("Hesabınız başarıyla oluşturuldu. Giriş yapabilirsiniz.",
+                        new ToastrOptions { Title = "Kayıt Başarılı" });
+
+                    return RedirectToAction("Login", "Auth", new { Area = "Admin" });
+                }
+                else
+                {
+                    foreach (var error in result.Errors)
+                    {
+                        switch (error)
+                        {
+                            case "PasswordRequiresNonAlphanumeric":
+                                ModelState.AddModelError("Password", "Şifre en az bir özel karakter içermelidir (örn: !@#$%^&*).");
+                                break;
+                            case "PasswordRequiresLower":
+                                ModelState.AddModelError("Password", "Şifre en az bir küçük harf içermelidir (a-z).");
+                                break;
+                            case "PasswordRequiresUpper":
+                                ModelState.AddModelError("Password", "Şifre en az bir büyük harf içermelidir (A-Z).");
+                                break;
+                            case "PasswordRequiresDigit":
+                                ModelState.AddModelError("Password", "Şifre en az bir rakam içermelidir (0-9).");
+                                break;
+                            case "PasswordTooShort":
+                                ModelState.AddModelError("Password", "Şifre en az 6 karakter uzunluğunda olmalıdır.");
+                                break;
+                            case "DublicateEmail":
+                            case "DuplicateEmail":
+                                ModelState.AddModelError("Email", "Bu e-posta adresi zaten kullanılıyor.");
+                                break;
+                            default:
+                                ModelState.AddModelError("", error);
+                                break;
+                        }
+                    }
+                    return View(userRegisterDto);
+                }
+            }
+
+            return View(userRegisterDto);
+        }
+
+        [HttpGet]
         public async Task<IActionResult> Logout()
         {
             await _authApiService.LogoutAsync();
