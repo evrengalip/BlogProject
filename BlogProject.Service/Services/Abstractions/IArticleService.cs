@@ -18,5 +18,7 @@ namespace BlogProject.Service.Services.Abstractions
             bool isAscending = false);
 
         Task AddArticleVisitorAsync(Guid articleId, string ipAddress, string userAgent);
+        Task<List<ArticleDto>> GetAllByUserIdAsync(Guid userId);
+
     }
 }

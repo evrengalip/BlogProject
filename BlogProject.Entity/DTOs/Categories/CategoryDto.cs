@@ -13,5 +13,6 @@ namespace BlogProject.Entity.DTOs.Categories
         public string CreatedBy { get; set; }
         public DateTime CreatedDate { get; set; }
         public bool IsDeleted { get; set; }
+
     }
 }

@@ -5,6 +5,7 @@ using BlogProject.Entity.DTOs.Articles;
 using BlogProject.Web.Consts;
 using BlogProject.Web.ResultMessages;
 using BlogProject.Web.Services;
+using System.Security.Claims;
 
 namespace BlogProject.Web.Areas.Admin.Controllers
 {
@@ -26,20 +27,39 @@ namespace BlogProject.Web.Areas.Admin.Controllers
             _toastNotification = toastNotification;
         }
 
-        [HttpGet]
-        [Authorize(Roles = $"{RoleConsts.Superadmin}, {RoleConsts.Admin}, {RoleConsts.User}")]
         public async Task<IActionResult> Index()
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (!User.IsInRole("Superadmin"))
+            {
+                // Sadece kendi yazdığı makaleler
+                var allArticles = await _articleService.GetAllArticlesAsync();
+                var userArticles = allArticles.Where(a => a.User.Id.ToString() == userId).ToList();
+                return View(userArticles);
+            }
+
+            // Superadmin ise hepsini görsün
             var articles = await _articleService.GetAllArticlesAsync();
             return View(articles);
         }
+
 
         [HttpGet]
         public async Task<IActionResult> DeletedArticle()
         {
             var articles = await _articleService.GetAllDeletedArticlesAsync();
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isSuperAdmin = User.IsInRole("Superadmin");
+
+            if (!isSuperAdmin)
+            {
+                articles = articles.Where(a => a.User.Id.ToString() == userId).ToList();
+            }
+
             return View(articles);
         }
+
 
         [HttpGet]
         public async Task<IActionResult> Add()

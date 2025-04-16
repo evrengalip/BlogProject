@@ -18,7 +18,7 @@ namespace BlogProject.Web.Areas.Admin.Controllers
             _userService = userService;
             _toastNotification = toastNotification;
         }
-        [Authorize(Roles = "Superadmin,Admin")]
+        [Authorize(Roles = "Superadmin")]
         public async Task<IActionResult> Index()
         {
             var users = await _userService.GetAllUsersAsync();

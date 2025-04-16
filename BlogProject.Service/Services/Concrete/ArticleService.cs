@@ -205,5 +205,17 @@ namespace BlogProject.Service.Services.Concrete
                 await unitOfWork.SaveAsync();
             }
         }
+
+        public async Task<List<ArticleDto>> GetAllByUserIdAsync(Guid userId)
+        {
+            var articles = await unitOfWork.GetRepository<Article>().GetAllAsync(
+                x => !x.IsDeleted && x.UserId == userId,
+                x => x.Category, x => x.Image, x => x.User);
+
+            var map = mapper.Map<List<ArticleDto>>(articles);
+            return map;
+        }
+
+
     }
 }

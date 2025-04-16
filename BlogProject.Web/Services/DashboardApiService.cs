@@ -1,4 +1,6 @@
-﻿namespace BlogProject.Web.Services
+﻿using BlogProject.Entity.DTOs.Categories;
+
+namespace BlogProject.Web.Services
 {
     public class DashboardApiService
     {
@@ -49,6 +51,21 @@
                 return 0; // Hata durumunda 0 döndür
             }
         }
+
+        public async Task<List<CategoryDto>> GetAllCategoriesAsync()
+        {
+            try
+            {
+                return await _apiClient.GetAsync<List<CategoryDto>>("categories");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Kategoriler alınırken hata: {ex.Message}");
+                return new List<CategoryDto>();
+            }
+        }
+
+
     }
 }
     

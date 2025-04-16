@@ -4,6 +4,7 @@ using BlogProject.Entity.DTOs.Categories;
 using BlogProject.Web.Services;
 using BlogProject.Web.ResultMessages;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace BlogProject.Web.Areas.Admin.Controllers
 {
@@ -22,14 +23,35 @@ namespace BlogProject.Web.Areas.Admin.Controllers
         public async Task<IActionResult> Index()
         {
             var categories = await _categoryService.GetAllCategoriesAsync();
+            var isSuperAdmin = User.IsInRole("Superadmin");
+            var userEmail = User.Identity.Name; 
+
+            if (!isSuperAdmin)
+            {
+                categories = categories.Where(c => c.CreatedBy == userEmail).ToList();
+            }
+
             return View(categories);
         }
+
+
+
         [Authorize(Roles = "Superadmin,Admin")]
         public async Task<IActionResult> DeletedCategory()
         {
             var categories = await _categoryService.GetAllDeletedCategoriesAsync();
+            var isSuperAdmin = User.IsInRole("Superadmin");
+            var userEmail = User.Identity.Name; // 🔁 Değiştirildi
+
+            if (!isSuperAdmin)
+            {
+                categories = categories.Where(c => c.CreatedBy == userEmail).ToList(); // 🔁 Değiştirildi
+            }
+
             return View(categories);
         }
+
+
 
         [HttpGet]
         public IActionResult Add()

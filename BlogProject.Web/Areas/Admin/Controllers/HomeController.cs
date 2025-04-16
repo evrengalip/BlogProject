@@ -53,18 +53,15 @@ namespace BlogProject.Web.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> TotalCategoryCount()
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var articles = await _articleService.GetAllArticlesAsync();
+            var userEmail = User.FindFirstValue(ClaimTypes.Email); // Çünkü CategoryDto içinde CreatedBy email
+            var categories = await _dashboardService.GetAllCategoriesAsync();
 
-            // Kullanıcının yazdığı makalelere göre kaç farklı kategori kullanılmış?
-            var categoryIds = articles
-                .Where(a => a.User.Id.ToString() == userId && !a.IsDeleted)
-                .Select(a => a.Category.Id)
-                .Distinct()
-                .Count();
-
-            return Json(categoryIds);
+            var count = categories.Count(c => c.CreatedBy == userEmail && !c.IsDeleted);
+            return Json(count);
         }
+
+
+
 
     }
 }
