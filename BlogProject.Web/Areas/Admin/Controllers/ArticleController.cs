@@ -64,8 +64,19 @@ namespace BlogProject.Web.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> Add()
         {
-            var categories = await _categoryService.GetAllCategoriesAsync();
-            return View(new ArticleAddDto { Categories = categories });
+            var userEmail = User.FindFirstValue(ClaimTypes.Email); // Kullanıcının e-posta adresini al
+            var allCategories = await _categoryService.GetAllCategoriesAsync();
+
+            if (User.IsInRole("Superadmin"))
+            {
+                return View(new ArticleAddDto { Categories = allCategories });
+            }
+
+            var userCategories = allCategories
+                .Where(c => c.CreatedBy == userEmail)
+                .ToList();
+
+            return View(new ArticleAddDto { Categories = userCategories });
         }
 
         [HttpPost]
