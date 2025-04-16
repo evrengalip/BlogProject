@@ -104,5 +104,12 @@ namespace BlogProject.Api.Controllers
             var title = await _articleService.UndoDeleteArticleAsync(id);
             return Ok(new { message = $"Article '{title}' restored successfully" });
         }
+
+        [HttpPost("add-visitor")]
+        public async Task<IActionResult> AddArticleVisitor([FromBody] ArticleVisitorDto dto)
+        {
+            await _articleService.AddArticleVisitorAsync(dto.ArticleId, dto.IpAddress, dto.UserAgent);
+            return Ok(new { message = "Article visit recorded successfully" });
+        }
     }
 }

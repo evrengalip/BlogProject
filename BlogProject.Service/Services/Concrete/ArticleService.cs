@@ -169,5 +169,41 @@ namespace BlogProject.Service.Services.Concrete
                 IsAscending = isAscending
             };
         }
+
+        public async Task AddArticleVisitorAsync(Guid articleId, string ipAddress, string userAgent)
+        {
+            // Önce ziyaretçiyi bul veya oluştur
+            var visitors = await unitOfWork.GetRepository<Visitor>().GetAllAsync(v => v.IpAddress == ipAddress);
+            Visitor visitor;
+
+            if (visitors.Any())
+            {
+                visitor = visitors.First();
+            }
+            else
+            {
+                visitor = new Visitor(ipAddress, userAgent);
+                await unitOfWork.GetRepository<Visitor>().AddAsync(visitor);
+                await unitOfWork.SaveAsync();
+            }
+
+            // Ziyaretçi kaydını al 
+            var existingVisit = await unitOfWork.GetRepository<ArticleVisitor>()
+                .GetAllAsync(av => av.ArticleId == articleId && av.VisitorId == visitor.Id);
+
+            // Eğer bu ziyaretçi daha önce bu makaleyi ziyaret etmediyse kaydet
+            if (!existingVisit.Any())
+            {
+                var articleVisitor = new ArticleVisitor(articleId, visitor.Id);
+                await unitOfWork.GetRepository<ArticleVisitor>().AddAsync(articleVisitor);
+
+                // Ayrıca makale görüntülenme sayısını artır
+                var article = await unitOfWork.GetRepository<Article>().GetByGuidAsync(articleId);
+                article.ViewCount += 1;
+                await unitOfWork.GetRepository<Article>().UpdateAsync(article);
+
+                await unitOfWork.SaveAsync();
+            }
+        }
     }
 }

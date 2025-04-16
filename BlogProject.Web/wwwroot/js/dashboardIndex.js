@@ -1,309 +1,94 @@
-﻿
-
-
-$(document).ready(function () {
-    var yearlyArticlesUrl = app.Urls.yearlyArticlesUrl;
-    var totalArticleCountUrl = app.Urls.totalArticleCountUrl;
-    var totalCategoryCountUrl = app.Urls.totalCategoryCountUrl;
-
+﻿$(document).ready(function () {
+    // Toplam makale sayısını al
     $.ajax({
         type: "GET",
-        url: totalArticleCountUrl,
+        url: app.Urls.totalArticleCountUrl,
         dataType: "json",
         success: function (data) {
-            $("h3#totalArticleCount").append(data);
+            $("#totalArticleCount").text(data);
         },
         error: function () {
-            toastr.error("Makale Analizleri yüklenirken hata oluştu", "Hata");
+            $("#totalArticleCount").text("Hata");
         }
-
     });
+
+    // Toplam kategori sayısını al
     $.ajax({
         type: "GET",
-        url: totalCategoryCountUrl,
+        url: app.Urls.totalCategoryCountUrl,
         dataType: "json",
         success: function (data) {
-            $("h3#totalCategoryCount").append(data);
+            $("#totalCategoryCount").text(data);
         },
         error: function () {
-            toastr.error("Makale Analizleri yüklenirken hata oluştu", "Hata");
+            $("#totalCategoryCount").text("Hata");
         }
-
     });
 
+    // Yıllık makale dağılımı için veri al
     $.ajax({
         type: "GET",
-        url : yearlyArticlesUrl,
+        url: app.Urls.yearlyArticlesUrl,
         dataType: "json",
         success: function (data) {
-            var parsedData = JSON.parse(data);
-            chartData = parsedData;
+            initializeRevenueChart(data);
+        },
+        error: function () {
+            console.log("Makale dağılımı verisi alınamadı");
+        }
+    });
 
+    // Makale dağılımı grafiği oluştur
+    function initializeRevenueChart(datas) {
+        const months = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
 
-            let cardColor, headingColor, axisColor, shadeColor, borderColor;
-
-            cardColor = config.colors.white;
-            headingColor = config.colors.headingColor;
-            axisColor = config.colors.axisColor;
-            borderColor = config.colors.borderColor;
-
-            // Total Revenue Report Chart - Bar Chart
-            // --------------------------------------------------------------------
-            const totalRevenueChartEl = document.querySelector('#customTotalRevenueChart'),
-                totalRevenueChartOptions = {
-                    series: [
-                        {
-                            data: chartData
-                        }
-                    ],
-                    chart: {
-                        height: 300,
-                        stacked: true,
-                        type: 'bar',
-                        toolbar: { show: false }
-                    },
-                    plotOptions: {
-                        bar: {
-                            horizontal: false,
-                            columnWidth: '53%',
-                            borderRadius: 12,
-                            startingShape: 'rounded',
-                            endingShape: 'rounded'
-                        }
-                    },
-                    colors: [config.colors.primary, config.colors.info],
-                    dataLabels: {
-                        enabled: false
-                    },
-                    stroke: {
-                        curve: 'smooth',
-                        width: 6,
-                        lineCap: 'round',
-                        colors: [cardColor]
-                    },
-                    legend: {
-                        show: true,
-                        horizontalAlign: 'left',
-                        position: 'top',
-                        markers: {
-                            height: 8,
-                            width: 8,
-                            radius: 12,
-                            offsetX: -3
-                        },
-                        labels: {
-                            colors: axisColor
-                        },
-                        itemMargin: {
-                            horizontal: 10
-                        }
-                    },
-                    grid: {
-                        borderColor: borderColor,
-                        padding: {
-                            top: 0,
-                            bottom: -8,
-                            left: 20,
-                            right: 20
-                        }
-                    },
-                    xaxis: {
-                        categories: ['Ocak', 'Subat', 'Mart', 'Nisan', 'Mayis', 'Haziran', 'Temmuz', 'Agustos', 'Eylul', 'Ekim', 'Kasim', 'Aralik'],
-                        labels: {
-                            style: {
-                                fontSize: '13px',
-                                colors: axisColor
-                            }
-                        },
-                        axisTicks: {
-                            show: false
-                        },
-                        axisBorder: {
-                            show: false
-                        }
-                    },
-                    yaxis: {
-                        labels: {
-                            style: {
-                                fontSize: '13px',
-                                colors: axisColor
-                            }
-                        }
-                    },
-                    responsive: [
-                        {
-                            breakpoint: 1700,
-                            options: {
-                                plotOptions: {
-                                    bar: {
-                                        borderRadius: 10,
-                                        columnWidth: '52%'
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            breakpoint: 1580,
-                            options: {
-                                plotOptions: {
-                                    bar: {
-                                        borderRadius: 10,
-                                        columnWidth: '55%'
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            breakpoint: 1440,
-                            options: {
-                                plotOptions: {
-                                    bar: {
-                                        borderRadius: 10,
-                                        columnWidth: '52%'
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            breakpoint: 1300,
-                            options: {
-                                plotOptions: {
-                                    bar: {
-                                        borderRadius: 10,
-                                        columnWidth: '68%'
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            breakpoint: 1200,
-                            options: {
-                                plotOptions: {
-                                    bar: {
-                                        borderRadius: 10,
-                                        columnWidth: '60%'
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            breakpoint: 1040,
-                            options: {
-                                plotOptions: {
-                                    bar: {
-                                        borderRadius: 11,
-                                        columnWidth: '68%'
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            breakpoint: 991,
-                            options: {
-                                plotOptions: {
-                                    bar: {
-                                        borderRadius: 10,
-                                        columnWidth: '50%'
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            breakpoint: 840,
-                            options: {
-                                plotOptions: {
-                                    bar: {
-                                        borderRadius: 10,
-                                        columnWidth: '55%'
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            breakpoint: 768,
-                            options: {
-                                plotOptions: {
-                                    bar: {
-                                        borderRadius: 10,
-                                        columnWidth: '48%'
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            breakpoint: 640,
-                            options: {
-                                plotOptions: {
-                                    bar: {
-                                        borderRadius: 10,
-                                        columnWidth: '52%'
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            breakpoint: 576,
-                            options: {
-                                plotOptions: {
-                                    bar: {
-                                        borderRadius: 10,
-                                        columnWidth: '57%'
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            breakpoint: 480,
-                            options: {
-                                plotOptions: {
-                                    bar: {
-                                        borderRadius: 10,
-                                        columnWidth: '65%'
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            breakpoint: 420,
-                            options: {
-                                plotOptions: {
-                                    bar: {
-                                        borderRadius: 10,
-                                        columnWidth: '72%'
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            breakpoint: 380,
-                            options: {
-                                plotOptions: {
-                                    bar: {
-                                        borderRadius: 10,
-                                        columnWidth: '80%'
-                                    }
-                                }
-                            }
-                        }
-                    ],
-                    states: {
-                        hover: {
-                            filter: {
-                                type: 'none'
-                            }
-                        },
-                        active: {
-                            filter: {
-                                type: 'none'
-                            }
-                        }
+        let options = {
+            series: [{
+                name: 'Makale Sayısı',
+                data: datas
+            }],
+            chart: {
+                height: 350,
+                type: 'bar',
+                toolbar: {
+                    show: false
+                }
+            },
+            plotOptions: {
+                bar: {
+                    borderRadius: 4,
+                    columnWidth: '30%',
+                }
+            },
+            colors: ['#696cff'],
+            dataLabels: {
+                enabled: false
+            },
+            xaxis: {
+                categories: months,
+                axisBorder: {
+                    show: false
+                }
+            },
+            yaxis: {
+                labels: {
+                    formatter: function (val) {
+                        return Math.floor(val);
                     }
-                };
-            if (typeof totalRevenueChartEl !== undefined && totalRevenueChartEl !== null) {
-                const totalRevenueChart = new ApexCharts(totalRevenueChartEl, totalRevenueChartOptions);
-                totalRevenueChart.render();
+                },
+                min: 0,
+                tickAmount: 4
+            },
+            tooltip: {
+                y: {
+                    formatter: function (val) {
+                        return val + " Makale";
+                    }
+                }
             }
-        }
+        };
 
-    });
+        const revenueChart = new ApexCharts(document.querySelector("#customTotalRevenueChart"), options);
+        revenueChart.render();
+    }
 });

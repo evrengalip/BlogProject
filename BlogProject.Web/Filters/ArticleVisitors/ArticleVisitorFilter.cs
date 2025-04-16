@@ -1,25 +1,40 @@
-﻿using Microsoft.AspNetCore.Mvc.Filters;
+﻿// BlogProject.Web/Filters/ArticleVisitors/ArticleVisitorFilter.cs
+using Microsoft.AspNetCore.Mvc.Filters;
 using BlogProject.Web.Services;
+using BlogProject.Entity.DTOs.Articles;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BlogProject.Web.Filters.ArticleVisitors
 {
     public class ArticleVisitorFilter : IAsyncActionFilter
     {
-        // Bu filtre API kullanıldığında farklı olacaktır, çünkü ziyaretçi takibi API tarafında yapılacaktır
-        // Bu örnekte basitçe gerektiğinde API'ye ziyaretçi bilgisi gönderebiliriz
-
+        private readonly VisitorApiService _visitorService;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public ArticleVisitorFilter(IHttpContextAccessor httpContextAccessor)
+        public ArticleVisitorFilter(VisitorApiService visitorService, IHttpContextAccessor httpContextAccessor)
         {
+            _visitorService = visitorService;
             _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
-            // API'ye ziyaretçi bilgisi gönderme işlemi buraya eklenebilir
-            // Şu an sadece filteri atlamasını söylüyoruz
-            await next();
+            // Önce işlemi tamamla
+            var resultContext = await next();
+
+            // Eğer action'ın adı Detail ise ve başarılıysa ziyaretçi kaydı yapılır
+            if (context.ActionDescriptor.DisplayName.Contains("Detail") && resultContext.Result is ViewResult viewResult)
+            {
+                if (viewResult.Model is ArticleDto articleDto)
+                {
+                    // Ziyaretçi bilgilerini al
+                    string ipAddress = _httpContextAccessor.HttpContext.Connection.RemoteIpAddress.MapToIPv4().ToString();
+                    string userAgent = _httpContextAccessor.HttpContext.Request.Headers["User-Agent"];
+
+                    // Makale ziyaretini kaydet
+                    await _visitorService.AddArticleVisitorAsync(articleDto.Id, ipAddress, userAgent);
+                }
+            }
         }
     }
 }

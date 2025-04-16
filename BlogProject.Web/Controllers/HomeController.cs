@@ -70,6 +70,11 @@ namespace BlogProject.Web.Controllers
             try
             {
                 var article = await _articleService.GetArticleByIdAsync(id);
+
+                
+                if (article == null)
+                    return NotFound();
+
                 return View(article);
             }
             catch (Exception ex)

@@ -16,5 +16,7 @@ namespace BlogProject.Service.Services.Abstractions
 
         Task<ArticleListDto> SearchAsync(string keyword, int currentPage = 1, int pageSize = 3,
             bool isAscending = false);
+
+        Task AddArticleVisitorAsync(Guid articleId, string ipAddress, string userAgent);
     }
 }

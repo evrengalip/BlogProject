@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using NToastNotify;
 using BlogProject.Entity.DTOs.Users;
 using BlogProject.Web.Services;
+using Microsoft.AspNetCore.Authentication;
+using System.Security.Claims;
 
 namespace BlogProject.Web.Areas.Admin.Controllers
 {
@@ -36,9 +38,40 @@ namespace BlogProject.Web.Areas.Admin.Controllers
         {
             if (ModelState.IsValid)
             {
+                // Önce mevcut oturumu sonlandıralım (varsa)
+                await HttpContext.SignOutAsync("ApplicationCookie");
+
                 var result = await _authApiService.LoginAsync(userLoginDto);
                 if (result)
                 {
+                    // Tarayıcı önbelleğini temizlemeye zorlayalım
+                    Response.Headers.Append("Cache-Control", "no-cache, no-store, must-revalidate");
+                    Response.Headers.Append("Pragma", "no-cache");
+                    Response.Headers.Append("Expires", "0");
+
+                    // RememberMe özelliğini zorla devre dışı bırakalım
+                    userLoginDto.RememberMe = false;
+
+                    // Kesinlikle geçici oturum oluşturuyoruz
+                    var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, userLoginDto.Email)
+                // Diğer claim'leri AuthApiService zaten ekliyor olabilir
+            };
+
+                    var claimsIdentity = new ClaimsIdentity(claims, "ApplicationCookie");
+                    var authProperties = new AuthenticationProperties
+                    {
+                        IsPersistent = false, // Bu çok önemli - kalıcı olmamasını sağlıyor
+                        ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(30),
+                        AllowRefresh = false // Yenileme izni vermiyoruz
+                    };
+
+                    await HttpContext.SignInAsync(
+                        "ApplicationCookie",
+                        new ClaimsPrincipal(claimsIdentity),
+                        authProperties);
+
                     _toastNotification.AddSuccessToastMessage("Başarıyla giriş yaptınız.", new ToastrOptions { Title = "İşlem Başarılı" });
 
                     if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
@@ -125,8 +158,17 @@ namespace BlogProject.Web.Areas.Admin.Controllers
         public async Task<IActionResult> Logout()
         {
             await _authApiService.LogoutAsync();
+
+            // Ek olarak burada da çıkış yapıyoruz
+            await HttpContext.SignOutAsync("ApplicationCookie");
+
+            // Tarayıcı önbelleğini temizlemeye zorlayalım
+            Response.Headers.Append("Cache-Control", "no-cache, no-store, must-revalidate");
+            Response.Headers.Append("Pragma", "no-cache");
+            Response.Headers.Append("Expires", "0");
+
             _toastNotification.AddSuccessToastMessage("Başarıyla çıkış yaptınız.", new ToastrOptions { Title = "İşlem Başarılı" });
-            return RedirectToAction("Index", "Home", new { Area = "" });
+            return RedirectToAction("Login", "Auth", new { Area = "Admin" });
         }
 
         [HttpGet]

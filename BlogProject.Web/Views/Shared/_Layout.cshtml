@@ -7,22 +7,45 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/BlogProject.Web.styles.css" asp-append-version="true" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <!-- Additional CSS Files -->
     <link rel="stylesheet" href="~/stand-blog/assets/css/fontawesome.css">
     <link rel="stylesheet" href="~/stand-blog/assets/css/templatemo-stand-blog.css">
     <link rel="stylesheet" href="~/stand-blog/assets/css/owl.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+    <!-- Scroll to top button CSS -->
+    <style>
+        #scrollToTopBtn {
+            position: fixed;
+            bottom: 40px;
+            right: 30px;
+            z-index: 99;
+            border: none;
+            outline: none;
+            background-color: #f39c12;
+            color: white;
+            cursor: pointer;
+            padding: 12px 16px;
+            border-radius: 50%;
+            font-size: 18px;
+            display: none;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: background-color 0.3s ease;
+        }
+
+            #scrollToTopBtn:hover {
+                background-color: #e67e22;
+            }
+    </style>
 </head>
 <body>
 
     <!-- ***** Preloader Start ***** -->
     <div id="preloader">
         <div class="jumper">
-            <div></div>
-            <div></div>
-            <div></div>
+            <div></div><div></div><div></div>
         </div>
     </div>
     <!-- ***** Preloader End ***** -->
@@ -30,201 +53,87 @@
     <header class="">
         <nav class="navbar navbar-expand-lg">
             <div class="container">
-                <a class="navbar-brand" asp-controller="Home" asp-action="Index"><h2>Stand Blog<em>.</em></h2></a>
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                <a class="navbar-brand" asp-controller="Home" asp-action="Index"><h2>Blog Sitesi<em>.</em></h2></a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-
                 <div class="d-flex align-items-center ms-auto">
                     <a href="/Admin" class="btn btn-dark" style="border-radius: 20px; font-size: 14px;">
                         <i class="fas fa-user-shield me-1"></i> Admin Paneli
                     </a>
                 </div>
-
-                @* <div class="collapse navbar-collapse" style="flex-grow:0" id="navbarResponsive">
-                    <ul class="navbar-nav ml-auto">
-                        <li class="nav-item active">
-                            <a class="nav-link" target="_blank" href="index.html">
-                                <i style="font-size:22px" class="fa-brands fa-linkedin-in"></i>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="about.html">
-                                <i style="font-size:22px;" class="fa-brands fa-github"></i>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="blog.html">
-                                <i style="font-size:22px;" class="fa-brands fa-youtube"></i>
-                            </a>
-                        </li>
-                    </ul>
-                </div> *@
             </div>
         </nav>
     </header>
-
-    <!-- Page Content -->
-    <!-- Banner Starts Here -->
-    <div class="main-banner header-text">
-        @*<div class="container-fluid">
-        <div class="owl-banner owl-carousel">
-        <div class="item">
-        <img src="~/stand-blog/assets/images/banner-item-01.jpg" alt="">
-        <div class="item-content">
-        <div class="main-content">
-        <div class="meta-category">
-        <span>Fashion</span>
-        </div>
-        <a href="post-details.html"><h4>Morbi dapibus condimentum</h4></a>
-        <ul class="post-info">
-        <li><a href="#">Admin</a></li>
-        <li><a href="#">May 12, 2020</a></li>
-        <li><a href="#">12 Comments</a></li>
-        </ul>
-        </div>
-        </div>
-        </div>
-        <div class="item">
-        <img src="~/stand-blog/assets/images/banner-item-02.jpg" alt="">
-        <div class="item-content">
-        <div class="main-content">
-        <div class="meta-category">
-        <span>Nature</span>
-        </div>
-        <a href="post-details.html"><h4>Donec porttitor augue at velit</h4></a>
-        <ul class="post-info">
-        <li><a href="#">Admin</a></li>
-        <li><a href="#">May 14, 2020</a></li>
-        <li><a href="#">24 Comments</a></li>
-        </ul>
-        </div>
-        </div>
-        </div>
-        <div class="item">
-        <img src="~/stand-blog/assets/images/banner-item-03.jpg" alt="">
-        <div class="item-content">
-        <div class="main-content">
-        <div class="meta-category">
-        <span>Lifestyle</span>
-        </div>
-        <a href="post-details.html"><h4>Best HTML Templates on TemplateMo</h4></a>
-        <ul class="post-info">
-        <li><a href="#">Admin</a></li>
-        <li><a href="#">May 16, 2020</a></li>
-        <li><a href="#">36 Comments</a></li>
-        </ul>
-        </div>
-        </div>
-        </div>
-        <div class="item">
-        <img src="~/stand-blog/assets/images/banner-item-04.jpg" alt="">
-        <div class="item-content">
-        <div class="main-content">
-        <div class="meta-category">
-        <span>Fashion</span>
-        </div>
-        <a href="post-details.html"><h4>Responsive and Mobile Ready Layouts</h4></a>
-        <ul class="post-info">
-        <li><a href="#">Admin</a></li>
-        <li><a href="#">May 18, 2020</a></li>
-        <li><a href="#">48 Comments</a></li>
-        </ul>
-        </div>
-        </div>
-        </div>
-        <div class="item">
-        <img src="~/stand-blog/assets/images/banner-item-05.jpg" alt="">
-        <div class="item-content">
-        <div class="main-content">
-        <div class="meta-category">
-        <span>Nature</span>
-        </div>
-        <a href="post-details.html"><h4>Cras congue sed augue id ullamcorper</h4></a>
-        <ul class="post-info">
-        <li><a href="#">Admin</a></li>
-        <li><a href="#">May 24, 2020</a></li>
-        <li><a href="#">64 Comments</a></li>
-        </ul>
-        </div>
-        </div>
-        </div>
-        <div class="item">
-        <img src="~/stand-blog/assets/images/banner-item-06.jpg" alt="">
-        <div class="item-content">
-        <div class="main-content">
-        <div class="meta-category">
-        <span>Lifestyle</span>
-        </div>
-        <a href="post-details.html"><h4>Suspendisse nec aliquet ligula</h4></a>
-        <ul class="post-info">
-        <li><a href="#">Admin</a></li>
-        <li><a href="#">May 26, 2020</a></li>
-        <li><a href="#">72 Comments</a></li>
-        </ul>
-        </div>
-        </div>
-        </div>
-        </div>
-        </div>*@
-    </div>
-    <!-- Banner Ends Here -->
-
 
     <div style="height:150px;"></div>
 
     @RenderBody()
 
-
-    <footer>
-        <div class="container">
-            <div class="row">
-             @*    <div class="col-lg-12">
-                    <ul class="social-icons">
-                        <li><a href="#">Facebook</a></li>
-                        <li><a href="#">Twitter</a></li>
-                        <li><a href="#">Behance</a></li>
-                        <li><a href="#">Linkedin</a></li>
-                        <li><a href="#">Dribbble</a></li>
-                    </ul>
-                </div> *@
-                <div class="col-lg-12">
-                    <div class="copyright-text">
-                        <p>
-                            Copyright 2020 Stand Blog Co.
-
-                            | Design: <a rel="nofollow" href="https://templatemo.com" target="_parent">TemplateMo</a>
-                        </p>
-                    </div>
-                </div>
+    <!-- Footer -->
+    <footer id="footer" class="text-white py-5" style="background-color: #1a1d23; opacity: 0;">
+        <div class="container text-center">
+            <p class="mb-2">Paylaşmak güzeldir. Bilgi büyüdükçe çoğalır.</p>
+            <div class="mb-3">
+                <a href="https://github.com/evrengalip" target="_blank" class="text-white mx-2">
+                    <i class="fab fa-github fa-lg"></i>
+                </a>
             </div>
+            <p class="mb-0" style="font-size: 14px;">&copy; 2025 Tüm Hakları Saklıdır | Hazırlayan: <strong>Evren Galip</strong></p>
         </div>
     </footer>
 
-    <!-- Bootstrap core JavaScript -->
+    <!-- Scroll to top button -->
+    <button id="scrollToTopBtn" title="Yukarı Çık">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- Scripts -->
     <script src="~/stand-blog/vendor/jquery/jquery.min.js"></script>
     <script src="~/stand-blog/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Additional Scripts -->
     <script src="~/stand-blog/assets/js/custom.js"></script>
     <script src="~/stand-blog/assets/js/owl.js"></script>
     <script src="~/stand-blog/assets/js/slick.js"></script>
     <script src="~/stand-blog/assets/js/isotope.js"></script>
     <script src="~/stand-blog/assets/js/accordions.js"></script>
-
-    <script language="text/Javascript">
-        cleared[0] = cleared[1] = cleared[2] = 0; //set a cleared flag for each field
-        function clearField(t) {                   //declaring the array outside of the
-            if (!cleared[t.id]) {                      // function makes it static and global
-                cleared[t.id] = 1;  // you could use true and false, but that's more typing
-                t.value = '';         // with more chance of typos
-                t.style.color = '#fff';
-            }
-        }
-    </script>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <!-- Scroll & Footer Animation Script -->
+    <script>
+        // Footer animasyonu (scroll ile)
+        document.addEventListener("DOMContentLoaded", function () {
+            const footer = document.getElementById("footer");
+            const observer = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        footer.classList.add("animate__animated", "animate__fadeInUp");
+                        footer.style.opacity = 1;
+                        observer.unobserve(footer);
+                    }
+                });
+            }, { threshold: 0.2 });
+
+            observer.observe(footer);
+        });
+
+        // Yukarı çık butonu göster/gizle
+        window.onscroll = function () {
+            const btn = document.getElementById("scrollToTopBtn");
+            if (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) {
+                btn.style.display = "block";
+            } else {
+                btn.style.display = "none";
+            }
+        };
+
+        // Yukarı çıkma işlemi
+        document.getElementById("scrollToTopBtn").addEventListener("click", function () {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

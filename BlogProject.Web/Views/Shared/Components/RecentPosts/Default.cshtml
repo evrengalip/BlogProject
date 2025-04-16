@@ -1,0 +1,17 @@
+﻿<!-- Views/Shared/Components/RecentPosts/Default.cshtml -->
+@using BlogProject.Entity.DTOs.Articles
+@model List<ArticleDto>
+
+<div class="content">
+    <ul>
+        @foreach (var article in Model)
+        {
+            <li>
+                <a asp-controller="Home" asp-action="Detail" asp-route-id="@article.Id">
+                    <h5>@article.Title</h5>
+                    <span>@article.CreatedDate.ToString("dd MMMM yyyy")</span>
+                </a>
+            </li>
+        }
+    </ul>
+</div>
