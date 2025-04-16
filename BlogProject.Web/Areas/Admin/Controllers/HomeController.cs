@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using BlogProject.Web.Services;
+using System.Security.Claims;
 
 namespace BlogProject.Web.Areas.Admin.Controllers
 {
@@ -26,22 +27,44 @@ namespace BlogProject.Web.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> YearlyArticleCounts()
         {
-            var counts = await _dashboardService.GetYearlyArticleCountsAsync();
-            return Json(counts);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var articles = await _articleService.GetAllArticlesAsync();
+
+            var userArticles = articles.Where(a => a.User.Id.ToString() == userId && !a.IsDeleted).ToList();
+
+            var monthlyCounts = Enumerable.Range(1, 12)
+                .Select(month => userArticles.Count(a => a.CreatedDate.Month == month && a.CreatedDate.Year == DateTime.Now.Year))
+                .ToArray();
+
+            return Json(monthlyCounts);
         }
+
 
         [HttpGet]
         public async Task<IActionResult> TotalArticleCount()
         {
-            var count = await _dashboardService.GetTotalArticleCountAsync();
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var articles = await _articleService.GetAllArticlesAsync();
+            var count = articles.Count(x => x.User.Id.ToString() == userId && !x.IsDeleted);
             return Json(count);
         }
+
 
         [HttpGet]
         public async Task<IActionResult> TotalCategoryCount()
         {
-            var count = await _dashboardService.GetTotalCategoryCountAsync();
-            return Json(count);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var articles = await _articleService.GetAllArticlesAsync();
+
+            // Kullanıcının yazdığı makalelere göre kaç farklı kategori kullanılmış?
+            var categoryIds = articles
+                .Where(a => a.User.Id.ToString() == userId && !a.IsDeleted)
+                .Select(a => a.Category.Id)
+                .Distinct()
+                .Count();
+
+            return Json(categoryIds);
         }
+
     }
 }

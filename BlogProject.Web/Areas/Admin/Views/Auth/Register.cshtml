@@ -30,6 +30,7 @@
     <div class="container-xxl">
         <div class="authentication-wrapper authentication-basic container-p-y">
             <div class="authentication-inner">
+
                 <!-- Kayıt Kartı -->
                 <div class="card">
                     <div class="card-body">
@@ -37,7 +38,6 @@
                         <div class="app-brand justify-content-center mb-4">
                             <a href="/" class="app-brand-link gap-2">
                                 <span class="app-brand-logo demo">
-                                    @* SVG logon burada kalıyor *@
                                     <svg width="25" ...> ... </svg>
                                 </span>
                                 <span class="app-brand-text demo text-body fw-bolder">BlogProject</span>
@@ -82,6 +82,9 @@
                                     <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
                                 </div>
                                 <span asp-validation-for="Password" class="text-danger"></span>
+                                <small class="form-text text-muted d-block mt-1">
+                                    Şifreniz en az 6 karakter olmalı ve en az birer büyük harf, küçük harf, rakam ve özel karakter içermelidir. (örneğin: ! @@ # $ % ^ & *)
+                                </small>
                             </div>
 
                             <div class="mb-3 form-password-toggle">

@@ -3,6 +3,7 @@ using NToastNotify;
 using BlogProject.Entity.DTOs.Categories;
 using BlogProject.Web.Services;
 using BlogProject.Web.ResultMessages;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BlogProject.Web.Areas.Admin.Controllers
 {
@@ -17,13 +18,13 @@ namespace BlogProject.Web.Areas.Admin.Controllers
             _categoryService = categoryService;
             _toastNotification = toastNotification;
         }
-
+        [Authorize(Roles = "Superadmin,Admin")]
         public async Task<IActionResult> Index()
         {
             var categories = await _categoryService.GetAllCategoriesAsync();
             return View(categories);
         }
-
+        [Authorize(Roles = "Superadmin,Admin")]
         public async Task<IActionResult> DeletedCategory()
         {
             var categories = await _categoryService.GetAllDeletedCategoriesAsync();

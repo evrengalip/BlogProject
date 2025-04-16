@@ -19,9 +19,10 @@ builder.Services.AddScoped<VisitorApiService>();
 // Session yap�land�rmas�
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromHours(2);
+    options.IdleTimeout = TimeSpan.FromDays(1); // 2 saat yerine 1 gün
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
 });
 
 // Add services to the container.
@@ -39,7 +40,6 @@ builder.Services.AddControllersWithViews(opt =>
 // HttpContextAccessor ekliyoruz
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
-// Kimlik do�rulama ayarlar� - Cookie tabanl� kimlik do�rulama
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultScheme = "ApplicationCookie";
@@ -53,9 +53,9 @@ builder.Services.AddAuthentication(options =>
     options.AccessDeniedPath = "/Admin/Auth/AccessDenied";
     options.Cookie.Name = "BlogProject";
     options.Cookie.HttpOnly = true;
-    options.Cookie.SameSite = SameSiteMode.Strict;
+    options.Cookie.SameSite = SameSiteMode.Lax; // Strict yerine Lax olmalı
     options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-    options.ExpireTimeSpan = TimeSpan.FromDays(7);
+    options.ExpireTimeSpan = TimeSpan.FromDays(30); // Daha uzun süre
     options.SlidingExpiration = true;
 });
 

@@ -3,9 +3,18 @@
 
 @{
     var userName = User.FindFirstValue(ClaimTypes.GivenName) ?? "Kullanıcı";
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    var userGuid = Guid.Parse(userId); // string olanı Guid'e çeviriyoruz
+
     var currentMonth = DateTime.Now.ToString("MMMM", new System.Globalization.CultureInfo("tr-TR"));
-    var currentMonthArticles = Model.Count(a => a.CreatedDate.Month == DateTime.Now.Month && a.CreatedDate.Year == DateTime.Now.Year);
+    var currentMonthArticles = Model.Count(a =>
+        a.User != null &&
+        a.User.Id == userGuid &&
+        a.CreatedDate.Month == DateTime.Now.Month &&
+        a.CreatedDate.Year == DateTime.Now.Year);
 }
+
+
 
 <div class="content-wrapper">
     <!-- Content -->

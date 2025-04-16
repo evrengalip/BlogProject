@@ -45,7 +45,8 @@ namespace BlogProject.Web.Services
         {
             try
             {
-                await _apiClient.PutAsync<object, UserUpdateDto>($"{Endpoint}/{userUpdateDto.Id}", userUpdateDto);
+                await _apiClient.PutAsync<object, UserUpdateDto>($"{Endpoint}", userUpdateDto);
+
                 return true;
             }
             catch

@@ -19,8 +19,20 @@ namespace BlogProject.Web.Services
             _httpClient.DefaultRequestHeaders.Accept.Clear();
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
+            // Her istek öncesi token kontrolü yapılmalı
             var token = _httpContextAccessor.HttpContext?.Session.GetString("JWTToken");
             if (!string.IsNullOrEmpty(token))
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+        }
+
+
+        private void EnsureTokenIsSet()
+        {
+            var token = _httpContextAccessor.HttpContext?.Session.GetString("JWTToken");
+            if (!string.IsNullOrEmpty(token) && (_httpClient.DefaultRequestHeaders.Authorization == null ||
+                _httpClient.DefaultRequestHeaders.Authorization.Parameter != token))
             {
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             }
@@ -30,6 +42,8 @@ namespace BlogProject.Web.Services
         {
             try
             {
+
+                EnsureTokenIsSet(); // Token kontrolü
                 var response = await _httpClient.GetAsync(endpoint);
 
                 if (response.IsSuccessStatusCode)

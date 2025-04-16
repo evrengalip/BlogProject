@@ -18,7 +18,7 @@ namespace BlogProject.Web.Areas.Admin.Controllers
             _userService = userService;
             _toastNotification = toastNotification;
         }
-
+        [Authorize(Roles = "Superadmin,Admin")]
         public async Task<IActionResult> Index()
         {
             var users = await _userService.GetAllUsersAsync();
@@ -81,6 +81,9 @@ namespace BlogProject.Web.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> Update(UserUpdateDto userUpdateDto)
         {
+
+            ModelState.Remove("Roles");
+
             if (ModelState.IsValid)
             {
                 var result = await _userService.UpdateUserAsync(userUpdateDto);
