@@ -51,21 +51,32 @@ namespace BlogProject.Service.Services.Concrete
         }
         public async Task CreateArticleAsync(ArticleAddDto articleAddDto)
         {
-
             var userId = _user.GetLoggedInUserId();
             var userEmail = _user.GetLoggedInEmail();
 
+            // Önce resmi kaydet
             var imageUpload = await imageHelper.Upload(articleAddDto.Title, articleAddDto.Photo, ImageType.Post);
+
+            // Resim kaydedildi mi kontrol et
+            if (imageUpload == null)
+            {
+                throw new Exception("Resim yüklenemedi");
+            }
+
+            // Log ekleyin
+            Console.WriteLine($"Resim kaydedildi: {imageUpload.FullName}");
+
+            // Yeni Image oluştur
             Image image = new(imageUpload.FullName, articleAddDto.Photo.ContentType, userEmail);
             await unitOfWork.GetRepository<Image>().AddAsync(image);
 
+            // Makale oluştur ve Image ID'sini ayarla
             var article = new Article(articleAddDto.Title, articleAddDto.Content, userId, userEmail, articleAddDto.CategoryId, image.Id);
-
-
             await unitOfWork.GetRepository<Article>().AddAsync(article);
+
+            // Değişiklikleri kaydet
             await unitOfWork.SaveAsync();
         }
-
         public async Task<List<ArticleDto>> GetAllArticlesWithCategoryNonDeletedAsync()
         {
 

@@ -75,34 +75,58 @@ namespace BlogProject.Service.Helpers.Images
 
         public async Task<ImageUploadedDto> Upload(string name, IFormFile imageFile, ImageType imageType, string folderName = null)
         {
-            folderName ??= imageType == ImageType.User ? userImagesFolder : articleImagesFolder;
-
-            if (!Directory.Exists($"{wwwroot}/{imgFolder}/{folderName}"))
-                Directory.CreateDirectory($"{wwwroot}/{imgFolder}/{folderName}");
-
-            string oldFileName = Path.GetFileNameWithoutExtension(imageFile.FileName);
-            string fileExtension = Path.GetExtension(imageFile.FileName);
-
-            name = ReplaceInvalidChars(name);
-
-            DateTime dateTime = DateTime.Now;
-
-            string newFileName = $"{name}_{dateTime.Millisecond}{fileExtension}";
-
-            var path = Path.Combine($"{wwwroot}/{imgFolder}/{folderName}", newFileName);
-
-            await using var stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, 1024 * 1024, useAsync: false);
-            await imageFile.CopyToAsync(stream);
-            await stream.FlushAsync();
-
-            string message = imageType == ImageType.User
-                ? $"{newFileName} isimli kullanıcı resmi başarı ile eklenmiştir."
-                : $"{newFileName} isimli makale resmi başarı ile eklenmiştir";
-
-            return new ImageUploadedDto()
+            try
             {
-                FullName = $"{folderName}/{newFileName}"
-            };
+                folderName ??= imageType == ImageType.User ? userImagesFolder : articleImagesFolder;
+
+                // Tam yolları oluştur
+                var directory = Path.Combine(wwwroot, imgFolder, folderName);
+
+                // Klasörün var olduğundan emin ol
+                if (!Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                    Console.WriteLine($"Klasör oluşturuldu: {directory}");
+                }
+
+                // Dosya adını oluştur
+                string oldFileName = Path.GetFileNameWithoutExtension(imageFile.FileName);
+                string fileExtension = Path.GetExtension(imageFile.FileName);
+                name = ReplaceInvalidChars(name);
+                string newFileName = $"{name}_{DateTime.Now.Millisecond}{fileExtension}";
+
+                // Tam dosya yolu
+                var path = Path.Combine(directory, newFileName);
+                Console.WriteLine($"Resim kaydediliyor: {path}");
+
+                // Dosyayı kaydet
+                using (var stream = new FileStream(path, FileMode.Create))
+                {
+                    await imageFile.CopyToAsync(stream);
+                    await stream.FlushAsync();
+                }
+
+                Console.WriteLine("Resim başarıyla kaydedildi");
+
+                // Kaydedilen dosya gerçekten var mı kontrol et
+                if (!File.Exists(path))
+                {
+                    Console.WriteLine("HATA: Dosya kaydedilmesine rağmen bulunamadı");
+                    return null;
+                }
+
+                // Başarılı
+                return new ImageUploadedDto()
+                {
+                    FullName = $"{folderName}/{newFileName}"
+                };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Resim yükleme hatası: {ex.Message}");
+                Console.WriteLine($"Hata detayı: {ex.StackTrace}");
+                return null;
+            }
         }
 
         public void Delete(string imageName)

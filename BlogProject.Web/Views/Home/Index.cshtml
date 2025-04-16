@@ -12,7 +12,21 @@
                                 <input type="hidden" id="keyword" value="@Model.CurrentPage" />
                                 <div class="blog-post">
                                     <div class="blog-thumb">
-                                        <img src="~/stand-blog/assets/images/blog-post-01.jpg" alt="">
+                                        @if (item.Image != null)
+
+                                        {
+                                            <img src="https://localhost:5002/images/@item.Image.FileName"
+                                                 alt="@item.Title"
+                                                 onerror="this.src='/stand-blog/assets/images/blog-post-01.jpg'" />
+
+
+                                        }
+
+                                        else
+
+                                        {
+                                            <img src="~/stand-blog/assets/images/blog-post-01.jpg" alt="@item.Title">
+                                        }
                                     </div>
                                     <div class="down-content">
                                         <a asp-controller="Home" asp-action="Detail" asp-route-id="@item.Id"><h4>@item.Title</h4></a>

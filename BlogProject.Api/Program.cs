@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using BlogProject.Service.Helpers.Images;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -82,6 +83,8 @@ builder.Services.AddAuthentication(options =>
 // Servis katmaný uzantýlarý
 builder.Services.LoadServiceLayerExtension();
 builder.Services.LoadDataLayerExtension(builder.Configuration);
+// ImageHelper servisini ekle
+builder.Services.AddScoped<IImageHelper, ImageHelper>();
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -97,7 +100,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseStaticFiles();
 app.UseCors("AllowAll");
 
 app.UseAuthentication();

@@ -10,10 +10,12 @@ namespace BlogProject.Api.Controllers
     public class ArticlesController : ControllerBase
     {
         private readonly IArticleService _articleService;
+        private readonly IWebHostEnvironment env;
 
-        public ArticlesController(IArticleService articleService)
+        public ArticlesController(IArticleService articleService, IWebHostEnvironment env)
         {
             _articleService = articleService;
+            this.env = env;
         }
 
         [HttpGet]
@@ -74,8 +76,31 @@ namespace BlogProject.Api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            await _articleService.CreateArticleAsync(articleAddDto);
-            return StatusCode(201, new { message = "Article created successfully" });
+            // Resim var mı kontrol et
+            if (articleAddDto.Photo == null || articleAddDto.Photo.Length == 0)
+            {
+                return BadRequest(new { message = "Resim yüklenmedi" });
+            }
+
+            try
+            {
+                // Dosya yolu kontrolü
+                var webRootPath = env.WebRootPath; // IWebHostEnvironment'i inject et
+                var imagesPath = Path.Combine(webRootPath, "images");
+
+                // images dizini yoksa oluştur
+                if (!Directory.Exists(imagesPath))
+                {
+                    Directory.CreateDirectory(imagesPath);
+                }
+
+                await _articleService.CreateArticleAsync(articleAddDto);
+                return StatusCode(201, new { message = "Article created successfully" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Article creation failed: {ex.Message}" });
+            }
         }
 
         [HttpPut]

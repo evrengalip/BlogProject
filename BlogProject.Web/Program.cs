@@ -2,6 +2,7 @@
 using NToastNotify;
 using BlogProject.Web.Filters.ArticleVisitors;
 using BlogProject.Web.Services;
+using BlogProject.Service.Helpers.Images;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +16,7 @@ builder.Services.AddScoped<DashboardApiService>();
 builder.Services.AddScoped<AuthApiService>();
 builder.Services.AddScoped<UserApiService>();
 builder.Services.AddScoped<VisitorApiService>();
+builder.Services.AddScoped<IImageHelper, ImageHelper>();
 
 // Session yap�land�rmas�
 builder.Services.AddSession(options =>

@@ -24,4 +24,8 @@
     <ProjectReference Include="..\BlogProject.Web\BlogProject.Web.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\images\article-images\" />
+  </ItemGroup>
+
 </Project>
