@@ -101,6 +101,20 @@ namespace BlogProject.API.Controllers
         [Route("register")]
         public async Task<IActionResult> Register([FromBody] UserRegisterDto registerDto)
         {
+            // Kullanıcıyı normal kayıt metoduyla oluştur ve User rolünü ata
+            return await RegisterUserWithRole(registerDto, "User");
+        }
+
+        [HttpPost]
+        [Route("register-admin")]
+        public async Task<IActionResult> RegisterAdmin([FromBody] UserRegisterDto registerDto)
+        {
+            // Kullanıcıyı özel bir API endpointi üzerinden oluştur ve Admin rolünü ata
+            return await RegisterUserWithRole(registerDto, "Admin");
+        }
+
+        private async Task<IActionResult> RegisterUserWithRole(UserRegisterDto registerDto, string roleName)
+        {
             // Email zaten var mı kontrol et
             var userExists = await _userManager.FindByEmailAsync(registerDto.Email);
             if (userExists != null)
@@ -131,10 +145,18 @@ namespace BlogProject.API.Controllers
                     Errors = result.Errors.Select(e => e.Code).ToList()
                 });
 
-            // Default User rolünü ata
-            if (await _roleManager.RoleExistsAsync("User"))
+            // Belirtilen rolü ata
+            if (await _roleManager.RoleExistsAsync(roleName))
             {
-                await _userManager.AddToRoleAsync(user, "User");
+                await _userManager.AddToRoleAsync(user, roleName);
+            }
+            else
+            {
+                // Eğer rol bulunamazsa, varsayılan olarak User rolünü atarız
+                if (await _roleManager.RoleExistsAsync("User"))
+                {
+                    await _userManager.AddToRoleAsync(user, "User");
+                }
             }
 
             return Ok(new { Succeeded = true, Errors = new List<string>() });

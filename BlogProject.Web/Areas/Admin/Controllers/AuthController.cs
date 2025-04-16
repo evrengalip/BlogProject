@@ -75,10 +75,11 @@ namespace BlogProject.Web.Areas.Admin.Controllers
         {
             if (ModelState.IsValid)
             {
-                var result = await _authApiService.RegisterAsync(userRegisterDto);
+                // Admin area üzerinden yapılan kayıtlar için Admin rolünü atamak için özel bir bayrak gönderiyoruz
+                var result = await _authApiService.RegisterAsync(userRegisterDto, isAdminRegistration: true);
                 if (result.Succeeded)
                 {
-                    _toastNotification.AddSuccessToastMessage("Hesabınız başarıyla oluşturuldu. Giriş yapabilirsiniz.",
+                    _toastNotification.AddSuccessToastMessage("Admin hesabınız başarıyla oluşturuldu. Giriş yapabilirsiniz.",
                         new ToastrOptions { Title = "Kayıt Başarılı" });
 
                     return RedirectToAction("Login", "Auth", new { Area = "Admin" });

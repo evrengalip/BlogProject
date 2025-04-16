@@ -81,11 +81,13 @@ namespace BlogProject.Web.Services
             }
         }
 
-        public async Task<(bool Succeeded, List<string> Errors)> RegisterAsync(UserRegisterDto registerDto)
+        public async Task<(bool Succeeded, List<string> Errors)> RegisterAsync(UserRegisterDto registerDto, bool isAdminRegistration = false)
         {
             try
             {
-                var response = await _apiClient.PostAsync<RegisterResponse, UserRegisterDto>($"{Endpoint}/register", registerDto);
+                // Eğer admin kaydı yapılıyorsa, role bilgisini ekleyen özel bir endpoint kullanıyoruz
+                string endpoint = isAdminRegistration ? $"{Endpoint}/register-admin" : $"{Endpoint}/register";
+                var response = await _apiClient.PostAsync<RegisterResponse, UserRegisterDto>(endpoint, registerDto);
                 return (response.Succeeded, response.Errors);
             }
             catch (Exception ex)
@@ -95,7 +97,7 @@ namespace BlogProject.Web.Services
             }
         }
 
-       
+
 
         public async Task LogoutAsync()
         {
