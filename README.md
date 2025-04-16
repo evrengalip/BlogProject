@@ -110,5 +110,5 @@ BlogProject/
 
 ## İletişim
 
-GitHub: [YourGitHubProfile](https://github.com/evrengalip)  
-LinkedIn: [YourLinkedInProfile](https://www.linkedin.com/in/evrengalip/)
+GitHub: (https://github.com/evrengalip)  
+LinkedIn: (https://www.linkedin.com/in/evrengalip/)
