@@ -22,7 +22,6 @@ builder.Services.AddSession(options =>
     options.IdleTimeout = TimeSpan.FromHours(2);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
-    options.Cookie.MaxAge = null; // Kalıcı cookie kullanmıyoruz
 });
 
 // Add services to the container.
@@ -56,8 +55,8 @@ builder.Services.AddAuthentication(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.SameSite = SameSiteMode.Strict;
     options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-    options.ExpireTimeSpan = TimeSpan.FromMinutes(30); // Süreyi azalttık
-    options.SlidingExpiration = false; // Sürekli yenilenmeyi kapattık
+    options.ExpireTimeSpan = TimeSpan.FromDays(7);
+    options.SlidingExpiration = true;
 });
 
 var app = builder.Build();
@@ -74,19 +73,6 @@ app.UseNToastNotify();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseSession();
-app.Use(async (context, next) =>
-{
-    // Kimlik doğrulama gereken sayfalarda önbelleği devre dışı bırak
-    if (context.Request.Path.StartsWithSegments("/Admin"))
-    {
-        context.Response.Headers.Append("Cache-Control", "no-cache, no-store, must-revalidate");
-        context.Response.Headers.Append("Pragma", "no-cache");
-        context.Response.Headers.Append("Expires", "0");
-    }
-
-    await next();
-});
-
 
 app.UseRouting();
 

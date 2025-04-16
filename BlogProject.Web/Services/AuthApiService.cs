@@ -27,8 +27,10 @@ namespace BlogProject.Web.Services
 
                 if (!string.IsNullOrEmpty(response.Token))
                 {
-                    // Session'a token ve kullanıcı bilgilerini kaydet
+                    // Token'ı session'da sakla
                     _httpContextAccessor.HttpContext.Session.SetString("JWTToken", response.Token);
+
+                    // Kullanıcı bilgilerini session'da sakla
                     _httpContextAccessor.HttpContext.Session.SetString("UserName", response.User.UserName);
                     _httpContextAccessor.HttpContext.Session.SetString("FirstName", response.User.FirstName);
                     _httpContextAccessor.HttpContext.Session.SetString("LastName", response.User.LastName);
@@ -39,8 +41,33 @@ namespace BlogProject.Web.Services
                     // API Client'a token'ı ayarla
                     _apiClient.SetAuthToken(response.Token);
 
-                    // Kimlik doğrulama cookie'sini oluşturma kısmını kaldırdık
-                    // Bu işlemi AuthController'da doğrudan yapacağız
+                    // Kimlik doğrulama cookie'si oluştur
+                    var claims = new List<Claim>
+                    {
+                        new Claim(ClaimTypes.Name, response.User.UserName),
+                        new Claim(ClaimTypes.Email, response.User.Email),
+                        new Claim(ClaimTypes.NameIdentifier, response.User.Id.ToString()),
+                        new Claim(ClaimTypes.GivenName, response.User.FirstName),
+                        new Claim(ClaimTypes.Surname, response.User.LastName)
+                    };
+
+                    // Rolleri claim olarak ekle
+                    foreach (var role in response.User.Roles)
+                    {
+                        claims.Add(new Claim(ClaimTypes.Role, role));
+                    }
+
+                    var claimsIdentity = new ClaimsIdentity(claims, "ApplicationCookie");
+                    var authProperties = new AuthenticationProperties
+                    {
+                        IsPersistent = loginDto.RememberMe,
+                        ExpiresUtc = DateTime.UtcNow.AddDays(7)
+                    };
+
+                    await _httpContextAccessor.HttpContext.SignInAsync(
+                        "ApplicationCookie",
+                        new ClaimsPrincipal(claimsIdentity),
+                        authProperties);
 
                     return true;
                 }
